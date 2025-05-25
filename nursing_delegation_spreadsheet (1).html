@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Nursing Delegation Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .excel-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: #217346;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #e7e6e6;
+            border-bottom: 2px solid #d1d1d1;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-right: 1px solid #d1d1d1;
+            background: #e7e6e6;
+            color: #333;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: #d1d1d1;
+        }
+
+        .tab.active {
+            background: white;
+            color: #217346;
+            border-bottom: 2px solid #217346;
+        }
+
+        .sheet {
+            display: none;
+            padding: 20px;
+            min-height: 600px;
+        }
+
+        .sheet.active {
+            display: block;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+            border: 1px solid #d1d1d1;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: #217346;
+            color: white;
+            padding: 10px 6px;
+            text-align: left;
+            font-weight: 600;
+            border-right: 1px solid #1a5c37;
+        }
+
+        td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #e1e1e1;
+            border-right: 1px solid #e1e1e1;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Status color coding */
+        .status-completed {
+            background-color: #c6efce !important;
+            color: #006100;
+        }
+
+        .status-pending {
+            background-color: #ffeb9c !important;
+            color: #9c6500;
+        }
+
+        .status-overdue {
+            background-color: #ffc7ce !important;
+            color: #9c0006;
+        }
+
+        .status-reassigned {
+            background-color: #b4c6e7 !important;
+            color: #002060;
+        }
+
+        .certification-valid {
+            background-color: #c6efce;
+            color: #006100;
+        }
+
+        .certification-expiring {
+            background-color: #ffeb9c;
+            color: #9c6500;
+        }
+
+        .certification-expired {
+            background-color: #ffc7ce;
+            color: #9c0006;
+        }
+
+        .patient-transferred {
+            background-color: #e7d4f7;
+            color: #5b2c87;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #d1d1d1;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #217346;
+            box-shadow: 0 0 0 2px rgba(33, 115, 70, 0.2);
+        }
+
+        .btn {
+            background: #217346;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #1a5c37;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+        }
+
+        /* Dashboard styles */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .kpi-card {
+            background: white;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .kpi-number {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .completion-rate-high { color: #28a745; }
+        .completion-rate-medium { color: #ffc107; }
+        .completion-rate-low { color: #dc3545; }
+
+        .chart-container {
+            background: white;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #217346;
+        }
+
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .bar-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bar-label {
+            min-width: 100px;
+            font-size: 12px;
+        }
+
+        .bar {
+            height: 20px;
+            background: #217346;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .alert-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .alert-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #ffeaa7;
+        }
+
+        .filter-section {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 12px 0;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 12px;
+            margin: 8px 0;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        select {
+            padding: 4px 8px;
+            border: 1px solid #d1d1d1;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .profile-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .profile-card {
+            background: white;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .profile-header {
+            font-weight: 600;
+            color: #217346;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin: 2px;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .instructions {
+            line-height: 1.6;
+        }
+
+        .instructions h3 {
+            color: #217346;
+            margin: 15px 0 8px 0;
+        }
+
+        .instructions ul {
+            margin: 8px 0 8px 20px;
+        }
+
+        .instructions li {
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="excel-container">
+        <div class="header">
+            <h1>Advanced Nursing Delegation Management System</h1>
+            <p>Complete Healthcare Workforce & Patient Management Solution</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="showSheet('delegation-entry')">Delegation Entry</div>
+            <div class="tab" onclick="showSheet('employee-profiles')">Employee Profiles</div>
+            <div class="tab" onclick="showSheet('patient-tracking')">Patient Tracking</div>
+            <div class="tab" onclick="showSheet('task-tracker')">Task Tracker</div>
+            <div class="tab" onclick="showSheet('dashboard')">Dashboard</div>
+            <div class="tab" onclick="showSheet('compliance')">Compliance Monitor</div>
+            <div class="tab" onclick="showSheet('admin-config')">Admin Config</div>
+            <div class="tab" onclick="showSheet('instructions')">User Guide</div>
+        </div>
+
+        <!-- Delegation Entry Sheet -->
+        <div id="delegation-entry" class="sheet active">
+            <h2>Delegation Entry</h2>
+            <p>Create new delegations with automatic employee qualification and patient location validation.</p>
+            
+            <div class="alert-section" id="delegationAlerts">
+                <div class="alert-title">⚠️ Validation Alerts</div>
+                <div id="alertContent">System will check employee certifications and patient locations automatically.</div>
+            </div>
+
+            <button class="btn" onclick="addNewDelegation()">+ New Delegation</button>
+            <button class="btn btn-info" onclick="validateAllDelegations()">🔍 Validate All</button>
+
+            <div class="table-container">
+                <table id="delegationTable">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Patient</th>
+                            <th>Current Location</th>
+                            <th>Task</th>
+                            <th>Assigned Nurse</th>
+                            <th>Qualification Check</th>
+                            <th>Date</th>
+                            <th>Shift</th>
+                            <th>Delegator</th>
+                            <th>Priority</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="delegationTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Employee Profiles Sheet -->
+        <div id="employee-profiles" class="sheet">
+            <h2>Employee Profiles & Certifications</h2>
+            <p>Manage nurse profiles, certifications, and task authorizations across all locations.</p>
+
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label class="filter-label">Filter by Location</label>
+                        <select id="employeeLocationFilter" onchange="filterEmployees()">
+                            <option value="">All Locations</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Certification Status</label>
+                        <select id="certificationFilter" onchange="filterEmployees()">
+                            <option value="">All Statuses</option>
+                            <option value="valid">Valid</option>
+                            <option value="expiring">Expiring Soon</option>
+                            <option value="expired">Expired</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="addNewEmployee()">+ Add Employee</button>
+            <button class="btn btn-warning" onclick="showExpiringCerts()">⚠️ Expiring Certifications</button>
+
+            <div class="table-container">
+                <table id="employeeTable">
+                    <thead>
+                        <tr>
+                            <th>Employee ID</th>
+                            <th>Name</th>
+                            <th>Primary Location</th>
+                            <th>Available Locations</th>
+                            <th>Authorized Tasks</th>
+                            <th>Certifications</th>
+                            <th>Status</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Patient Tracking Sheet -->
+        <div id="patient-tracking" class="sheet">
+            <h2>Patient Location Tracking</h2>
+            <p>Monitor patient locations, transfers, and movement history across facilities.</p>
+
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label class="filter-label">Current Location</label>
+                        <select id="patientLocationFilter" onchange="filterPatients()">
+                            <option value="">All Locations</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Show</label>
+                        <select id="patientStatusFilter" onchange="filterPatients()">
+                            <option value="current">Current Residents</option>
+                            <option value="transferred">Recently Transferred</option>
+                            <option value="all">All Patients</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="addNewPatient()">+ Add Patient</button>
+            <button class="btn btn-info" onclick="recordTransfer()">↔️ Record Transfer</button>
+
+            <div class="table-container">
+                <table id="patientTable">
+                    <thead>
+                        <tr>
+                            <th>Patient ID</th>
+                            <th>Name</th>
+                            <th>Current Location</th>
+                            <th>Room/Unit</th>
+                            <th>Admission Date</th>
+                            <th>Last Transfer</th>
+                            <th>Care Level</th>
+                            <th>Active Tasks</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Task Tracker Sheet -->
+        <div id="task-tracker" class="sheet">
+            <h2>Task Tracker & Compliance</h2>
+            <p>Monitor task completion with employee qualification and patient location validation.</p>
+            
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label class="filter-label">Location</label>
+                        <select id="trackerLocationFilter" onchange="applyTrackerFilters()">
+                            <option value="">All Locations</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <select id="trackerStatusFilter" onchange="applyTrackerFilters()">
+                            <option value="">All Statuses</option>
+                            <option value="Overdue">Overdue</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Reassigned">Reassigned</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Compliance Issues</label>
+                        <select id="complianceFilter" onchange="applyTrackerFilters()">
+                            <option value="">All Tasks</option>
+                            <option value="certification">Certification Issues</option>
+                            <option value="location">Location Mismatches</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="trackerTable">
+                    <thead>
+                        <tr>
+                            <th>🚨</th>
+                            <th>Patient</th>
+                            <th>Location</th>
+                            <th>Task</th>
+                            <th>Assigned Nurse</th>
+                            <th>Qualified?</th>
+                            <th>Location Match?</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Compliance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trackerTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Dashboard Sheet -->
+        <div id="dashboard" class="sheet">
+            <h2>Executive Dashboard</h2>
+            <p>Real-time overview of delegation performance, compliance, and workforce metrics.</p>
+
+            <div class="dashboard">
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Active Delegations</div>
+                    <div class="kpi-number" id="totalDelegations">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Completion Rate</div>
+                    <div class="kpi-number" id="completionRate">0%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Compliance Score</div>
+                    <div class="kpi-number" id="complianceScore">0%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Active Employees</div>
+                    <div class="kpi-number" id="activeEmployees">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Current Patients</div>
+                    <div class="kpi-number" id="currentPatients">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Overdue Tasks</div>
+                    <div class="kpi-number" id="overdueTasks" style="color: #dc3545;">0</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Tasks by Location</div>
+                <div class="bar-chart" id="locationChart"></div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Employee Workload Distribution</div>
+                <div class="bar-chart" id="workloadChart"></div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Patient Distribution by Location</div>
+                <div class="bar-chart" id="patientDistributionChart"></div>
+            </div>
+        </div>
+
+        <!-- Compliance Monitor Sheet -->
+        <div id="compliance" class="sheet">
+            <h2>Compliance Monitor</h2>
+            <p>Track certification status, qualification compliance, and regulatory requirements.</p>
+
+            <div class="alert-section">
+                <div class="alert-title">🚨 Critical Compliance Alerts</div>
+                <div id="complianceAlerts">
+                    <div class="alert-item">
+                        <span>Expired Certifications</span>
+                        <span id="expiredCertCount">0</span>
+                    </div>
+                    <div class="alert-item">
+                        <span>Unqualified Task Assignments</span>
+                        <span id="unqualifiedCount">0</span>
+                    </div>
+                    <div class="alert-item">
+                        <span>Location Mismatches</span>
+                        <span id="locationMismatchCount">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <div class="profile-card">
+                    <div class="profile-header">Certification Expiration Calendar</div>
+                    <div id="certificationCalendar">
+                        <!-- Upcoming expirations will be listed here -->
+                    </div>
+                </div>
+                
+                <div class="profile-card">
+                    <div class="profile-header">Qualification Gaps</div>
+                    <div id="qualificationGaps">
+                        <!-- Missing qualifications will be listed here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="complianceTable">
+                    <thead>
+                        <tr>
+                            <th>Issue Type</th>
+                            <th>Employee/Task</th>
+                            <th>Details</th>
+                            <th>Risk Level</th>
+                            <th>Due Date</th>
+                            <th>Action Required</th>
+                        </tr>
+                    </thead>
+                    <tbody id="complianceTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Admin Config Sheet -->
+        <div id="admin-config" class="sheet">
+            <h2>System Configuration</h2>
+            <p><strong>⚠️ Admin Only:</strong> Manage system settings, reference data, and compliance rules.</p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div>
+                    <h3>Locations & Units</h3>
+                    <div id="locationsConfig">
+                        <div>Sunset Manor - Wing A</div>
+                        <div>Sunset Manor - Wing B</div>
+                        <div>Golden Care - Memory Unit</div>
+                        <div>Golden Care - Assisted Living</div>
+                        <div>Riverside Lodge - Skilled Nursing</div>
+                        <div>Riverside Lodge - Rehabilitation</div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3>Delegatable Tasks</h3>
+                    <div id="tasksConfig">
+                        <div>Medication Administration (RN Required)</div>
+                        <div>Vital Signs Check (LPN/RN)</div>
+                        <div>Wound Care (Certified)</div>
+                        <div>Blood Sugar Test (Certified)</div>
+                        <div>Physical Therapy (PT/PTA)</div>
+                        <div>Insulin Injection (RN Required)</div>
+                        <div>Catheter Care (Certified)</div>
+                        <div>IV Management (RN Required)</div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3>Required Certifications</h3>
+                    <div id="certificationsConfig">
+                        <div>RN License</div>
+                        <div>LPN License</div>
+                        <div>CNA Certification</div>
+                        <div>Wound Care Certification</div>
+                        <div>Diabetes Management</div>
+                        <div>IV Therapy Certification</div>
+                        <div>CPR/BLS</div>
+                        <div>Physical Therapy License</div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3>Care Levels</h3>
+                    <div id="careLevelsConfig">
+                        <div>Independent Living</div>
+                        <div>Assisted Living</div>
+                        <div>Memory Care</div>
+                        <div>Skilled Nursing</div>
+                        <div>Rehabilitation</div>
+                        <div>Hospice Care</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions Sheet -->
+        <div id="instructions" class="sheet">
+            <div class="instructions">
+                <h2>🏥 Advanced Nursing Delegation Management System</h2>
+                <h2>Complete User Guide</h2>
+
+                <h3>🌟 System Overview</h3>
+                <p>This comprehensive system manages nursing delegations while tracking employee qualifications and patient movements across multiple care facilities. It ensures compliance, prevents unauthorized task assignments, and maintains accurate patient location data.</p>
+
+                <h3>📋 Core Features</h3>
+                <ul>
+                    <li><strong>Employee Profile Management</strong> - Track certifications, qualifications, and location assignments</li>
+                    <li><strong>Patient Location Tracking</strong> - Monitor patient movements and transfers between facilities</li>
+                    <li><strong>Smart Delegation Validation</strong> - Automatic checking of employee qualifications and patient locations</li>
+                    <li><strong>Compliance Monitoring</strong> - Real-time alerts for certification expiration and qualification gaps</li>
+                    <li><strong>Cross-Location Management</strong> - Handle staff and patients across multiple facilities</li>
+                </ul>
+
+                <h3>👥 Employee Profile Management</h3>
+                <ul>
+                    <li>Maintain complete employee records with certifications and expiration dates</li>
+                    <li>Track which locations each employee is authorized to work</li>
+                    <li>Define task-specific qualifications (e.g., RN required for medication administration)</li>
+                    <li>Monitor certification expiration dates with automatic alerts</li>
+                    <li>Assign employees to primary locations while allowing cross-location work</li>
+                </ul>
+
+                <h3>🏠 Patient Location Tracking</h3>
+                <ul>
+                    <li>Record patient admissions with initial location assignment</li>
+                    <li>Track patient transfers between units, wings, or facilities</li>
+                    <li>Maintain complete transfer history for each patient</li>
+                    <li>Support temporary location assignments (e.g., hospital stays)</li>
+                    <li>Automatically update delegation assignments when patients move</li>
+                </ul>
+
+                <h3>✅ Smart Delegation Process</h3>
+                <ul>
+                    <li><strong>Step 1:</strong> Select patient (system shows current location)</li>
+                    <li><strong>Step 2:</strong> Choose task (system filters qualified employees)</li>
+                    <li><strong>Step 3:</strong> Assign employee (automatic qualification validation)</li>
+                    <li><strong>Step 4:</strong> System checks location compatibility</li>
+                    <li><strong>Step 5:</strong> Creates delegation with compliance verification</li>
+                </ul>
+
+                <h3>🔍 Compliance Monitoring</h3>
+                <ul>
+                    <li><strong>Certification Tracking:</strong> Monitor all employee certifications and expiration dates</li>
+                    <li><strong>Qualification Validation:</strong> Ensure only qualified staff receive task assignments</li>
+                    <li><strong>Location Compliance:</strong> Verify employees are authorized for patient locations</li>
+                    <li><strong>Automated Alerts:</strong> Receive warnings for compliance issues before they occur</li>
+                </ul>
+
+                <h3>📊 Dashboard Analytics</h3>
+                <ul>
+                    <li><strong>Workforce Metrics:</strong> Employee utilization and qualification status</li>
+                    <li><strong>Patient Distribution:</strong> Census and location analytics</li>
+                    <li><strong>Compliance Scores:</strong> Overall system compliance percentage</li>
+                    <li><strong>Performance Tracking:</strong> Task completion rates and efficiency metrics</li>
+                </ul>
+
+                <h3>⚠️ Critical Alerts System</h3>
+                <ul>
+                    <li><strong>Red Alerts:</strong> Expired certifications, unqualified assignments</li>
+                    <li><strong>Yellow Alerts:</strong> Certifications expiring within 30 days</li>
+                    <li><strong>Blue Alerts:</strong> Patient transfers requiring delegation updates</li>
+                    <li><strong>Purple Alerts:</strong> Location mismatches or unauthorized assignments</li>
+                </ul>
+
+                <h3>🔧 Administrative Functions</h3>
+                <ul>
+                    <li>Add new locations, units, or facilities to the system</li>
+                    <li>Define task-specific qualification requirements</li>
+                    <li>Set up certification renewal schedules and alerts</li>
+                    <li>Configure location access permissions for employees</li>
+                    <li>Manage patient care level classifications</li>
+                </ul>
+
+                <h3>📈 Best Practices</h3>
+                <ul>
+                    <li><strong>Daily:</strong> Review compliance dashboard for immediate issues</li>
+                    <li><strong>Weekly:</strong> Check upcoming certification expirations</li>
+                    <li><strong>Monthly:</strong> Analyze workforce distribution and patient movements</li>
+                    <li><strong>Quarterly:</strong> Review and update qualification requirements</li>
+                    <li><strong>Annual:</strong> Comprehensive system audit and data cleanup</li>
+                </ul>
+
+                <h3>🎯 Key Benefits</h3>
+                <ul>
+                    <li><strong>Regulatory Compliance:</strong> Maintain state and federal compliance requirements</li>
+                    <li><strong>Risk Reduction:</strong> Prevent unqualified task assignments and liability issues</li>
+                    <li><strong>Operational Efficiency:</strong> Streamlined delegation process with automatic validation</li>
+                    <li><strong>Real-time Visibility:</strong> Complete oversight of staff and patient status</li>
+                    <li><strong>Scalable Design:</strong> Supports growth and multi-location expansion</li>
+                </ul>
+
+                <h3>📞 Support & Training</h3>
+                <p>For additional training, system setup, or troubleshooting assistance:</p>
+                <ul>
+                    <li>Contact your IT administrator for technical support</li>
+                    <li>Refer to compliance team for qualification requirements</li>
+                    <li>Schedule training sessions for new users</li>
+                    <li>Regular system updates and feature enhancements available</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced configuration with employee and patient data
+        const config = {
+            locations: [
+                'Sunset Manor - Wing A', 'Sunset Manor - Wing B',
+                'Golden Care - Memory Unit', 'Golden Care - Assisted Living',
+                'Riverside Lodge - Skilled Nursing', 'Riverside Lodge - Rehabilitation'
+            ],
+            tasks: [
+                { name: 'Medication Administration', requiresCert: 'RN License' },
+                { name: 'Vital Signs Check', requiresCert: 'LPN License' },
+                { name: 'Wound Care', requiresCert: 'Wound Care Certification' },
+                { name: 'Blood Sugar Test', requiresCert: 'Diabetes Management' },
+                { name: 'Physical Therapy', requiresCert: 'Physical Therapy License' },
+                { name: 'Insulin Injection', requiresCert: 'RN License' },
+                { name: 'Catheter Care', requiresCert: 'CNA Certification' },
+                { name: 'IV Management', requiresCert: 'IV Therapy Certification' }
+            ],
+            certifications: [
+                'RN License', 'LPN License', 'CNA Certification', 'Wound Care Certification',
+                'Diabetes Management', 'IV Therapy Certification', 'CPR/BLS', 'Physical Therapy License'
+            ],
+            shifts: ['Day', 'Evening', 'Night'],
+            statuses: ['Completed', 'Pending', 'Overdue', 'Reassigned'],
+            careLevels: ['Independent Living', 'Assisted Living', 'Memory Care', 'Skilled Nursing', 'Rehabilitation', 'Hospice Care']
+        };
+
+        // Employee data with certifications and qualifications
+        let employeeData = [
+            {
+                id: 'EMP001', name: 'Sarah Johnson', primaryLocation: 'Sunset Manor - Wing A',
+                availableLocations: ['Sunset Manor - Wing A', 'Sunset Manor - Wing B'],
+                certifications: [
+                    { name: 'RN License', expiry: '2026-03-15', status: 'valid' },
+                    { name: 'CPR/BLS', expiry: '2025-08-20', status: 'valid' },
+                    { name: 'IV Therapy Certification', expiry: '2025-06-10', status: 'expiring' }
+                ],
+                authorizedTasks: ['Medication Administration', 'Vital Signs Check', 'IV Management'],
+                status: 'Active', lastUpdated: '2025-05-20'
+            },
+            {
+                id: 'EMP002', name: 'Mike Chen', primaryLocation: 'Golden Care - Memory Unit',
+                availableLocations: ['Golden Care - Memory Unit', 'Golden Care - Assisted Living'],
+                certifications: [
+                    { name: 'LPN License', expiry: '2026-01-10', status: 'valid' },
+                    { name: 'CPR/BLS', expiry: '2025-12-05', status: 'valid' },
+                    { name: 'Diabetes Management', expiry: '2025-07-15', status: 'valid' }
+                ],
+                authorizedTasks: ['Vital Signs Check', 'Blood Sugar Test'],
+                status: 'Active', lastUpdated: '2025-05-18'
+            },
+            {
+                id: 'EMP003', name: 'Lisa Rodriguez', primaryLocation: 'Riverside Lodge - Skilled Nursing',
+                availableLocations: ['Riverside Lodge - Skilled Nursing', 'Riverside Lodge - Rehabilitation'],
+                certifications: [
+                    { name: 'RN License', expiry: '2025-09-30', status: 'valid' },
+                    { name: 'Wound Care Certification', expiry: '2025-05-28', status: 'expiring' },
+                    { name: 'CPR/BLS', expiry: '2026-02-14', status: 'valid' }
+                ],
+                authorizedTasks: ['Medication Administration', 'Wound Care', 'Vital Signs Check'],
+                status: 'Active', lastUpdated: '2025-05-22'
+            },
+            {
+                id: 'EMP004', name: 'Amanda Taylor', primaryLocation: 'Golden Care - Assisted Living',
+                availableLocations: ['Golden Care - Assisted Living', 'Golden Care - Memory Unit'],
+                certifications: [
+                    { name: 'CNA Certification', expiry: '2026-04-12', status: 'valid' },
+                    { name: 'CPR/BLS', expiry: '2025-11-08', status: 'valid' },
+                    { name: 'Diabetes Management', expiry: '2025-03-20', status: 'expired' }
+                ],
+                authorizedTasks: ['Vital Signs Check', 'Catheter Care'],
+                status: 'Active', lastUpdated: '2025-05-19'
+            },
+            {
+                id: 'EMP005', name: 'David Kim', primaryLocation: 'Sunset Manor - Wing B',
+                availableLocations: ['Sunset Manor - Wing A', 'Sunset Manor - Wing B'],
+                certifications: [
+                    { name: 'Physical Therapy License', expiry: '2026-08-05', status: 'valid' },
+                    { name: 'CPR/BLS', expiry: '2025-10-12', status: 'valid' }
+                ],
+                authorizedTasks: ['Physical Therapy'],
+                status: 'Active', lastUpdated: '2025-05-21'
+            }
+        ];
+
+        // Patient data with location tracking
+        let patientData = [
+            {
+                id: 'P001', name: 'Robert Smith', currentLocation: 'Sunset Manor - Wing A',
+                room: 'Room 101A', admissionDate: '2024-12-15', lastTransfer: null,
+                careLevel: 'Assisted Living', activeTasks: 2, status: 'Current Resident',
+                transferHistory: []
+            },
+            {
+                id: 'P002', name: 'Mary Jones', currentLocation: 'Golden Care - Memory Unit',
+                room: 'Room 205B', admissionDate: '2025-01-08', lastTransfer: '2025-03-15',
+                careLevel: 'Memory Care', activeTasks: 3, status: 'Current Resident',
+                transferHistory: [
+                    { from: 'Golden Care - Assisted Living', to: 'Golden Care - Memory Unit', date: '2025-03-15', reason: 'Care level increase' }
+                ]
+            },
+            {
+                id: 'P003', name: 'James Brown', currentLocation: 'Riverside Lodge - Skilled Nursing',
+                room: 'Room 315C', admissionDate: '2025-02-20', lastTransfer: null,
+                careLevel: 'Skilled Nursing', activeTasks: 5, status: 'Current Resident',
+                transferHistory: []
+            },
+            {
+                id: 'P004', name: 'Patricia Davis', currentLocation: 'Sunset Manor - Wing B',
+                room: 'Room 202A', admissionDate: '2024-11-30', lastTransfer: '2025-05-10',
+                careLevel: 'Assisted Living', activeTasks: 1, status: 'Current Resident',
+                transferHistory: [
+                    { from: 'Sunset Manor - Wing A', to: 'Sunset Manor - Wing B', date: '2025-05-10', reason: 'Room preference' }
+                ]
+            },
+            {
+                id: 'P005', name: 'Michael Wilson', currentLocation: 'Golden Care - Assisted Living',
+                room: 'Room 150B', admissionDate: '2025-04-05', lastTransfer: null,
+                careLevel: 'Assisted Living', activeTasks: 2, status: 'Current Resident',
+                transferHistory: []
+            }
+        ];
+
+        // Enhanced delegation data with compliance tracking
+        let delegationData = [
+            {
+                id: 'DEL001', patientId: 'P001', patientName: 'Robert Smith', 
+                currentLocation: 'Sunset Manor - Wing A', task: 'Medication Administration',
+                assignedNurse: 'Sarah Johnson', employeeId: 'EMP001', qualificationCheck: 'Valid',
+                date: '2025-05-25', shift: 'Day', delegator: 'Dr. Martinez', priority: 'High',
+                status: 'Pending', locationMatch: 'Valid', complianceStatus: 'Compliant'
+            },
+            {
+                id: 'DEL002', patientId: 'P002', patientName: 'Mary Jones',
+                currentLocation: 'Golden Care - Memory Unit', task: 'Blood Sugar Test',
+                assignedNurse: 'Mike Chen', employeeId: 'EMP002', qualificationCheck: 'Valid',
+                date: '2025-05-25', shift: 'Day', delegator: 'Nurse Wilson', priority: 'Medium',
+                status: 'Completed', locationMatch: 'Valid', complianceStatus: 'Compliant'
+            },
+            {
+                id: 'DEL003', patientId: 'P003', patientName: 'James Brown',
+                currentLocation: 'Riverside Lodge - Skilled Nursing', task: 'Wound Care',
+                assignedNurse: 'Lisa Rodriguez', employeeId: 'EMP003', qualificationCheck: 'Expiring Soon',
+                date: '2025-05-24', shift: 'Evening', delegator: 'Dr. Thompson', priority: 'High',
+                status: 'Overdue', locationMatch: 'Valid', complianceStatus: 'At Risk'
+            },
+            {
+                id: 'DEL004', patientId: 'P004', patientName: 'Patricia Davis',
+                currentLocation: 'Sunset Manor - Wing B', task: 'Vital Signs Check',
+                assignedNurse: 'Amanda Taylor', employeeId: 'EMP004', qualificationCheck: 'Valid',
+                date: '2025-05-25', shift: 'Night', delegator: 'Nurse Adams', priority: 'Low',
+                status: 'Pending', locationMatch: 'Mismatch', complianceStatus: 'Non-Compliant'
+            },
+            {
+                id: 'DEL005', patientId: 'P005', patientName: 'Michael Wilson',
+                currentLocation: 'Golden Care - Assisted Living', task: 'Physical Therapy',
+                assignedNurse: 'David Kim', employeeId: 'EMP005', qualificationCheck: 'Valid',
+                date: '2025-05-25', shift: 'Day', delegator: 'Dr. Clark', priority: 'Medium',
+                status: 'Reassigned', locationMatch: 'Invalid', complianceStatus: 'Non-Compliant'
+            }
+        ];
+
+        // Navigation between sheets
+        function showSheet(sheetId) {
+            document.querySelectorAll('.sheet').forEach(sheet => {
+                sheet.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(sheetId).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Load sheet-specific content
+            switch(sheetId) {
+                case 'delegation-entry':
+                    renderDelegationEntry();
+                    break;
+                case 'employee-profiles':
+                    renderEmployeeProfiles();
+                    populateEmployeeFilters();
+                    break;
+                case 'patient-tracking':
+                    renderPatientTracking();
+                    populatePatientFilters();
+                    break;
+                case 'task-tracker':
+                    renderTaskTracker();
+                    populateTrackerFilters();
+                    break;
+                case 'dashboard':
+                    renderDashboard();
+                    break;
+                case 'compliance':
+                    renderComplianceMonitor();
+                    break;
+            }
+        }
+
+        // Helper functions
+        function getStatusClass(status) {
+            switch(status?.toLowerCase()) {
+                case 'completed': return 'status-completed';
+                case 'pending': return 'status-pending';
+                case 'overdue': return 'status-overdue';
+                case 'reassigned': return 'status-reassigned';
+                default: return '';
+            }
+        }
+
+        function getCertificationClass(status) {
+            switch(status?.toLowerCase()) {
+                case 'valid': return 'certification-valid';
+                case 'expiring': return 'certification-expiring';
+                case 'expired': return 'certification-expired';
+                default: return '';
+            }
+        }
+
+        function getComplianceIcon(status) {
+            switch(status) {
+                case 'Compliant': return '✅';
+                case 'At Risk': return '⚠️';
+                case 'Non-Compliant': return '❌';
+                default: return '❓';
+            }
+        }
+
+        // Render Delegation Entry
+        function renderDelegationEntry() {
+            const tbody = document.getElementById('delegationTableBody');
+            tbody.innerHTML = '';
+            
+            delegationData.forEach(delegation => {
+                const tr = document.createElement('tr');
+                tr.className = getStatusClass(delegation.status);
+                
+                tr.innerHTML = `
+                    <td><span class="badge badge-${delegation.status.toLowerCase().replace(' ', '-')}">${delegation.status}</span></td>
+                    <td>${delegation.patientName} (${delegation.patientId})</td>
+                    <td>${delegation.currentLocation}</td>
+                    <td>${delegation.task}</td>
+                    <td>${delegation.assignedNurse}</td>
+                    <td><span class="badge badge-${delegation.qualificationCheck === 'Valid' ? 'success' : delegation.qualificationCheck === 'Expiring Soon' ? 'warning' : 'danger'}">${delegation.qualificationCheck}</span></td>
+                    <td>${delegation.date}</td>
+                    <td>${delegation.shift}</td>
+                    <td>${delegation.delegator}</td>
+                    <td>${delegation.priority}</td>
+                    <td>
+                        <button class="btn" style="padding: 4px 8px; font-size: 11px;" onclick="editDelegation('${delegation.id}')">Edit</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Render Employee Profiles
+        function renderEmployeeProfiles() {
+            const tbody = document.getElementById('employeeTableBody');
+            tbody.innerHTML = '';
+            
+            employeeData.forEach(employee => {
+                const tr = document.createElement('tr');
+                
+                const certificationBadges = employee.certifications.map(cert => 
+                    `<span class="badge badge-${cert.status === 'valid' ? 'success' : cert.status === 'expiring' ? 'warning' : 'danger'}">${cert.name}</span>`
+                ).join(' ');
+                
+                const locationBadges = employee.availableLocations.map(loc => 
+                    `<span class="badge badge-success">${loc}</span>`
+                ).join(' ');
+                
+                tr.innerHTML = `
+                    <td>${employee.id}</td>
+                    <td><strong>${employee.name}</strong></td>
+                    <td>${employee.primaryLocation}</td>
+                    <td>${locationBadges}</td>
+                    <td>${employee.authorizedTasks.join(', ')}</td>
+                    <td>${certificationBadges}</td>
+                    <td><span class="badge badge-success">${employee.status}</span></td>
+                    <td>${employee.lastUpdated}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Render Patient Tracking
+        function renderPatientTracking() {
+            const tbody = document.getElementById('patientTableBody');
+            tbody.innerHTML = '';
+            
+            patientData.forEach(patient => {
+                const tr = document.createElement('tr');
+                
+                tr.innerHTML = `
+                    <td>${patient.id}</td>
+                    <td><strong>${patient.name}</strong></td>
+                    <td>${patient.currentLocation}</td>
+                    <td>${patient.room}</td>
+                    <td>${patient.admissionDate}</td>
+                    <td>${patient.lastTransfer || 'N/A'}</td>
+                    <td><span class="badge badge-info">${patient.careLevel}</span></td>
+                    <td>${patient.activeTasks}</td>
+                    <td><span class="badge badge-success">${patient.status}</span></td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Render Task Tracker
+        function renderTaskTracker() {
+            const tbody = document.getElementById('trackerTableBody');
+            tbody.innerHTML = '';
+            
+            const sortedData = [...delegationData].sort((a, b) => {
+                const priorityOrder = {'Overdue': 1, 'Pending': 2, 'Reassigned': 3, 'Completed': 4};
+                return priorityOrder[a.status] - priorityOrder[b.status];
+            });
+            
+            sortedData.forEach(delegation => {
+                const tr = document.createElement('tr');
+                tr.className = getStatusClass(delegation.status);
+                
+                tr.innerHTML = `
+                    <td>${getComplianceIcon(delegation.complianceStatus)}</td>
+                    <td>${delegation.patientName}</td>
+                    <td>${delegation.currentLocation}</td>
+                    <td>${delegation.task}</td>
+                    <td>${delegation.assignedNurse}</td>
+                    <td><span class="badge badge-${delegation.qualificationCheck === 'Valid' ? 'success' : delegation.qualificationCheck === 'Expiring Soon' ? 'warning' : 'danger'}">${delegation.qualificationCheck}</span></td>
+                    <td><span class="badge badge-${delegation.locationMatch === 'Valid' ? 'success' : 'danger'}">${delegation.locationMatch}</span></td>
+                    <td>${delegation.date}</td>
+                    <td><span class="badge badge-${delegation.status.toLowerCase().replace(' ', '-')}">${delegation.status}</span></td>
+                    <td><span class="badge badge-${delegation.complianceStatus === 'Compliant' ? 'success' : delegation.complianceStatus === 'At Risk' ? 'warning' : 'danger'}">${delegation.complianceStatus}</span></td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Render Dashboard
+        function renderDashboard() {
+            // Calculate metrics
+            const totalDelegations = delegationData.length;
+            const completedTasks = delegationData.filter(d => d.status === 'Completed').length;
+            const completionRate = totalDelegations > 0 ? (completedTasks / totalDelegations * 100).toFixed(1) : 0;
+            const compliantTasks = delegationData.filter(d => d.complianceStatus === 'Compliant').length;
+            const complianceScore = totalDelegations > 0 ? (compliantTasks / totalDelegations * 100).toFixed(1) : 0;
+            const overdueTasks = delegationData.filter(d => d.status === 'Overdue').length;
+            
+            // Update KPIs
+            document.getElementById('totalDelegations').textContent = totalDelegations;
+            document.getElementById('completionRate').textContent = completionRate + '%';
+            document.getElementById('complianceScore').textContent = complianceScore + '%';
+            document.getElementById('activeEmployees').textContent = employeeData.filter(e => e.status === 'Active').length;
+            document.getElementById('currentPatients').textContent = patientData.filter(p => p.status === 'Current Resident').length;
+            document.getElementById('overdueTasks').textContent = overdueTasks;
+            
+            // Color code completion rate
+            const completionElement = document.getElementById('completionRate');
+            completionElement.className = 'kpi-number ' + 
+                (completionRate >= 90 ? 'completion-rate-high' :
+                 completionRate >= 70 ? 'completion-rate-medium' : 'completion-rate-low');
+            
+            // Color code compliance score
+            const complianceElement = document.getElementById('complianceScore');
+            complianceElement.className = 'kpi-number ' + 
+                (complianceScore >= 95 ? 'completion-rate-high' :
+                 complianceScore >= 80 ? 'completion-rate-medium' : 'completion-rate-low');
+            
+            renderLocationChart();
+            renderWorkloadChart();
+            renderPatientDistributionChart();
+        }
+
+        // Render charts for dashboard
+        function renderLocationChart() {
+            const locationChart = document.getElementById('locationChart');
+            const locationCounts = {};
+            
+            delegationData.forEach(d => {
+                locationCounts[d.currentLocation] = (locationCounts[d.currentLocation] || 0) + 1;
+            });
+            
+            const maxCount = Math.max(...Object.values(locationCounts), 1);
+            locationChart.innerHTML = '';
+            
+            Object.entries(locationCounts).forEach(([location, count]) => {
+                const percentage = (count / maxCount) * 100;
+                const barItem = document.createElement('div');
+                barItem.className = 'bar-item';
+                barItem.innerHTML = `
+                    <div class="bar-label">${location}</div>
+                    <div class="bar" style="width: ${percentage}%">${count}</div>
+                `;
+                locationChart.appendChild(barItem);
+            });
+        }
+
+        function renderWorkloadChart() {
+            const workloadChart = document.getElementById('workloadChart');
+            const nurseCounts = {};
+            
+            delegationData.forEach(d => {
+                nurseCounts[d.assignedNurse] = (nurseCounts[d.assignedNurse] || 0) + 1;
+            });
+            
+            const sortedNurses = Object.entries(nurseCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            
+            const maxCount = sortedNurses[0] ? sortedNurses[0][1] : 1;
+            workloadChart.innerHTML = '';
+            
+            sortedNurses.forEach(([nurse, count]) => {
+                const percentage = (count / maxCount) * 100;
+                const barItem = document.createElement('div');
+                barItem.className = 'bar-item';
+                barItem.innerHTML = `
+                    <div class="bar-label">${nurse}</div>
+                    <div class="bar" style="width: ${percentage}%">${count}</div>
+                `;
+                workloadChart.appendChild(barItem);
+            });
+        }
+
+        function renderPatientDistributionChart() {
+            const patientChart = document.getElementById('patientDistributionChart');
+            const locationCounts = {};
+            
+            patientData.forEach(p => {
+                locationCounts[p.currentLocation] = (locationCounts[p.currentLocation] || 0) + 1;
+            });
+            
+            const maxCount = Math.max(...Object.values(locationCounts), 1);
+            patientChart.innerHTML = '';
+            
+            Object.entries(locationCounts).forEach(([location, count]) => {
+                const percentage = (count / maxCount) * 100;
+                const barItem = document.createElement('div');
+                barItem.className = 'bar-item';
+                barItem.innerHTML = `
+                    <div class="bar-label">${location}</div>
+                    <div class="bar" style="width: ${percentage}%">${count}</div>
+                `;
+                patientChart.appendChild(barItem);
+            });
+        }
+
+        // Render Compliance Monitor
+        function renderComplianceMonitor() {
+            // Count compliance issues
+            const expiredCerts = employeeData.reduce((count, emp) => 
+                count + emp.certifications.filter(cert => cert.status === 'expired').length, 0);
+            const unqualifiedTasks = delegationData.filter(d => d.qualificationCheck !== 'Valid').length;
+            const locationMismatches = delegationData.filter(d => d.locationMatch !== 'Valid').length;
+            
+            document.getElementById('expiredCertCount').textContent = expiredCerts;
+            document.getElementById('unqualifiedCount').textContent = unqualifiedTasks;
+            document.getElementById('locationMismatchCount').textContent = locationMismatches;
+            
+            // Render certification calendar
+            const certCalendar = document.getElementById('certificationCalendar');
+            certCalendar.innerHTML = '';
+            
+            const expiringCerts = [];
+            employeeData.forEach(emp => {
+                emp.certifications.forEach(cert => {
+                    if (cert.status === 'expiring' || cert.status === 'expired') {
+                        expiringCerts.push({
+                            employee: emp.name,
+                            certification: cert.name,
+                            expiry: cert.expiry,
+                            status: cert.status
+                        });
+                    }
+                });
+            });
+            
+            expiringCerts.sort((a, b) => new Date(a.expiry) - new Date(b.expiry));
+            
+            expiringCerts.forEach(cert => {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <span class="badge badge-${cert.status === 'expired' ? 'danger' : 'warning'}">${cert.certification}</span>
+                    ${cert.employee} - ${cert.expiry}
+                `;
+                certCalendar.appendChild(div);
+            });
+            
+            // Render compliance table
+            const tbody = document.getElementById('complianceTableBody');
+            tbody.innerHTML = '';
+            
+            const complianceIssues = [
+                ...delegationData.filter(d => d.complianceStatus !== 'Compliant').map(d => ({
+                    type: 'Task Assignment',
+                    detail: `${d.task} - ${d.assignedNurse}`,
+                    issue: d.qualificationCheck !== 'Valid' ? 'Qualification Issue' : 'Location Mismatch',
+                    risk: d.complianceStatus === 'Non-Compliant' ? 'High' : 'Medium',
+                    dueDate: d.date,
+                    action: 'Reassign or Update Certification'
+                })),
+                ...expiringCerts.map(cert => ({
+                    type: 'Certification',
+                    detail: `${cert.certification} - ${cert.employee}`,
+                    issue: `Certification ${cert.status}`,
+                    risk: cert.status === 'expired' ? 'Critical' : 'High',
+                    dueDate: cert.expiry,
+                    action: cert.status === 'expired' ? 'Immediate Renewal Required' : 'Schedule Renewal'
+                }))
+            ];
+            
+            complianceIssues.forEach(issue => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${issue.type}</td>
+                    <td>${issue.detail}</td>
+                    <td>${issue.issue}</td>
+                    <td><span class="badge badge-${issue.risk === 'Critical' ? 'danger' : issue.risk === 'High' ? 'warning' : 'info'}">${issue.risk}</span></td>
+                    <td>${issue.dueDate}</td>
+                    <td>${issue.action}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Filter functions
+        function populateEmployeeFilters() {
+            const locationFilter = document.getElementById('employeeLocationFilter');
+            const uniqueLocations = [...new Set(employeeData.map(emp => emp.primaryLocation))];
+            
+            locationFilter.innerHTML = '<option value="">All Locations</option>';
+            uniqueLocations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = location;
+                option.textContent = location;
+                locationFilter.appendChild(option);
+            });
+        }
+
+        function populatePatientFilters() {
+            const locationFilter = document.getElementById('patientLocationFilter');
+            const uniqueLocations = [...new Set(patientData.map(p => p.currentLocation))];
+            
+            locationFilter.innerHTML = '<option value="">All Locations</option>';
+            uniqueLocations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = location;
+                option.textContent = location;
+                locationFilter.appendChild(option);
+            });
+        }
+
+        function populateTrackerFilters() {
+            const locationFilter = document.getElementById('trackerLocationFilter');
+            const uniqueLocations = [...new Set(delegationData.map(d => d.currentLocation))];
+            
+            locationFilter.innerHTML = '<option value="">All Locations</option>';
+            uniqueLocations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = location;
+                option.textContent = location;
+                locationFilter.appendChild(option);
+            });
+        }
+
+        // Button functions
+        function addNewDelegation() {
+            alert('Add New Delegation: This would open a form to create a new delegation with employee qualification and patient location validation.');
+        }
+
+        function validateAllDelegations() {
+            alert('Validation Complete: All delegations checked for employee qualifications and patient locations.');
+        }
+
+        function addNewEmployee() {
+            alert('Add New Employee: This would open a form to add employee profile with certifications and location assignments.');
+        }
+
+        function addNewPatient() {
+            alert('Add New Patient: This would open a form to add patient with location assignment.');
+        }
+
+        function recordTransfer() {
+            alert('Record Transfer: This would open a form to record patient transfer between locations.');
+        }
+
+        function editDelegation(id) {
+            alert(`Edit Delegation ${id}: This would open a form to modify the delegation details.`);
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            renderDelegationEntry();
+        });
+    </script>
+</body>
+</html>
