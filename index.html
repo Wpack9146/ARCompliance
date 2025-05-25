@@ -1,2490 +1,1402 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Nursing Delegation Management System</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-
-        .excel-container {
-            max-width: 1600px;
-            margin: 0 auto;
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .header {
-            background: #217346;
-            color: white;
-            padding: 15px 20px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .tabs {
-            display: flex;
-            background: #e7e6e6;
-            border-bottom: 2px solid #d1d1d1;
-            overflow-x: auto;
-        }
-
-        .tab {
-            padding: 12px 20px;
-            cursor: pointer;
-            border-right: 1px solid #d1d1d1;
-            background: #e7e6e6;
-            color: #333;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .tab:hover {
-            background: #d1d1d1;
-        }
-
-        .tab.active {
-            background: white;
-            color: #217346;
-            border-bottom: 2px solid #217346;
-        }
-
-        .sheet {
-            display: none;
-            padding: 20px;
-            min-height: 600px;
-        }
-
-        .sheet.active {
-            display: block;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            margin: 20px 0;
-            border: 1px solid #d1d1d1;
-            border-radius: 4px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        th {
-            background: #217346;
-            color: white;
-            padding: 10px 6px;
-            text-align: left;
-            font-weight: 600;
-            border-right: 1px solid #1a5c37;
-        }
-
-        td {
-            padding: 8px 6px;
-            border-bottom: 1px solid #e1e1e1;
-            border-right: 1px solid #e1e1e1;
-        }
-
-        tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        /* Status color coding */
-        .status-completed {
-            background-color: #c6efce !important;
-            color: #006100;
-        }
-
-        .status-pending {
-            background-color: #ffeb9c !important;
-            color: #9c6500;
-        }
-
-        .status-overdue {
-            background-color: #ffc7ce !important;
-            color: #9c0006;
-        }
-
-        .status-reassigned {
-            background-color: #b4c6e7 !important;
-            color: #002060;
-        }
-
-        .certification-valid {
-            background-color: #c6efce;
-            color: #006100;
-        }
-
-        .certification-expiring {
-            background-color: #ffeb9c;
-            color: #9c6500;
-        }
-
-        .certification-expired {
-            background-color: #ffc7ce;
-            color: #9c0006;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 6px;
-            border: 1px solid #d1d1d1;
-            border-radius: 3px;
-            font-size: 12px;
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: #217346;
-            box-shadow: 0 0 0 2px rgba(33, 115, 70, 0.2);
-        }
-
-        .btn {
-            background: #217346;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            margin: 5px;
-        }
-
-        .btn:hover {
-            background: #1a5c37;
-        }
-
-        .btn-warning {
-            background: #ffc107;
-            color: #212529;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-        }
-
-        .btn-info {
-            background: #17a2b8;
-        }
-
-        /* Dashboard styles */
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .kpi-card {
-            background: white;
-            border: 1px solid #e1e1e1;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .kpi-number {
-            font-size: 28px;
-            font-weight: bold;
-            margin: 8px 0;
-        }
-
-        .kpi-label {
-            font-size: 12px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .completion-rate-high { color: #28a745; }
-        .completion-rate-medium { color: #ffc107; }
-        .completion-rate-low { color: #dc3545; }
-
-        .chart-container {
-            background: white;
-            border: 1px solid #e1e1e1;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-
-        .chart-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #217346;
-        }
-
-        .bar-chart {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .bar-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .bar-label {
-            min-width: 100px;
-            font-size: 12px;
-        }
-
-        .bar {
-            height: 20px;
-            background: #217346;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .alert-section {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 6px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-
-        .alert-title {
-            font-weight: 600;
-            color: #856404;
-            margin-bottom: 10px;
-        }
-
-        .alert-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #ffeaa7;
-        }
-
-        .filter-section {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 6px;
-            margin: 12px 0;
-        }
-
-        .filter-row {
-            display: flex;
-            gap: 12px;
-            margin: 8px 0;
-            flex-wrap: wrap;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .filter-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: #666;
-        }
-
-        select {
-            padding: 4px 8px;
-            border: 1px solid #d1d1d1;
-            border-radius: 3px;
-            font-size: 12px;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            margin: 2px;
-        }
-
-        .badge-success {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .badge-warning {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .badge-danger {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .badge-info {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-
-        /* Enhanced Modal Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal {
-            background: white;
-            border-radius: 8px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-header {
-            background: #217346;
-            color: white;
-            padding: 20px;
-            border-radius: 8px 8px 0 0;
-        }
-
-        .modal-body {
-            padding: 20px;
-        }
-
-        .modal-footer {
-            padding: 20px;
-            border-top: 1px solid #e9ecef;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #217346;
-            box-shadow: 0 0 0 2px rgba(33, 115, 70, 0.2);
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: #217346;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        /* Search Functionality */
-        .search-container {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 15px 0;
-            border: 1px solid #e9ecef;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        .search-results {
-            background: white;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 10px;
-        }
-
-        .search-result-item {
-            padding: 10px 15px;
-            border-bottom: 1px solid #e9ecef;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .search-result-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .search-result-type {
-            font-size: 11px;
-            background: #6c757d;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
-            margin-right: 8px;
-        }
-
-        /* Save notification */
-        .save-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 4px;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .instructions {
-            line-height: 1.6;
-        }
-
-        .instructions h3 {
-            color: #217346;
-            margin: 15px 0 8px 0;
-        }
-
-        .instructions ul {
-            margin: 8px 0 8px 20px;
-        }
-
-        .instructions li {
-            margin: 4px 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="excel-container">
-        <div class="header">
-            <h1>Advanced Nursing Delegation Management System</h1>
-            <p>Professional Healthcare Workforce & Patient Management Solution</p>
+import React, { useState, useEffect } from 'react';
+import { 
+  Users, Calendar, FileText, Activity, Settings, 
+  Search, Bell, Plus, Filter, Download, CheckCircle, 
+  AlertTriangle, Clock, User, MapPin, Stethoscope,
+  TrendingUp, BarChart3, Shield, Heart, Menu,
+  Home, ClipboardList, UserCheck, Building2,
+  ChevronRight, Star, Award
+} from 'lucide-react';
+
+const WellNestNursingSystem = () => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showCarePlanModal, setShowCarePlanModal] = useState(false);
+  const [showStaffModal, setShowStaffModal] = useState(false);
+  const [showIndividualModal, setShowIndividualModal] = useState(false);
+  const [showLocationChangeModal, setShowLocationChangeModal] = useState(false);
+  const [selectedIndividualId, setSelectedIndividualId] = useState(null);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isMobile, setIsMobile] = useState(false);
+  const [formData, setFormData] = useState({
+    individual: '',
+    careType: '',
+    provider: '',
+    priority: 'routine',
+    location: '',
+    date: '',
+    time: '',
+    duration: '30',
+    notes: '',
+    requiredCertifications: [],
+    specialInstructions: ''
+  });
+
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth < 1024) {
+        setSidebarOpen(false);
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Sample data - in real app this would come from API
+  const [delegations] = useState([
+    {
+      id: 'DEL001',
+      individual: { name: 'Robert Smith', id: 'R001', room: '101A', careLevel: 'Assisted Living' },
+      location: 'Sunset Manor - Wing A',
+      task: 'Medication Administration',
+      nurse: { name: 'Dr. Sarah Johnson', avatar: '/api/placeholder/40/40', credentials: 'RN, BSN' },
+      status: 'pending',
+      priority: 'high',
+      date: '2025-05-25',
+      time: '09:00',
+      compliance: 'compliant',
+      urgency: 'routine'
+    },
+    {
+      id: 'DEL002',
+      individual: { name: 'Mary Jones', id: 'M002', room: '205B', careLevel: 'Memory Care' },
+      location: 'Golden Care - Memory Unit',
+      task: 'Vital Signs Assessment',
+      nurse: { name: 'Dr. Mike Chen', avatar: '/api/placeholder/40/40', credentials: 'LPN' },
+      status: 'completed',
+      priority: 'medium',
+      date: '2025-05-25',
+      time: '10:30',
+      compliance: 'compliant',
+      urgency: 'routine'
+    },
+    {
+      id: 'DEL003',
+      individual: { name: 'James Brown', id: 'J003', room: '315C', careLevel: 'Skilled Nursing' },
+      location: 'Riverside Lodge - Skilled Nursing',
+      task: 'Advanced Wound Care',
+      nurse: { name: 'Dr. Lisa Rodriguez', avatar: '/api/placeholder/40/40', credentials: 'RN, CWCN' },
+      status: 'overdue',
+      priority: 'high',
+      date: '2025-05-24',
+      time: '14:00',
+      compliance: 'at-risk',
+      urgency: 'urgent'
+    }
+  ]);
+
+  const [staff] = useState([
+    {
+      id: 'EMP001',
+      name: 'Dr. Sarah Johnson',
+      avatar: '/api/placeholder/60/60',
+      role: 'Senior Registered Nurse',
+      credentials: 'RN, BSN, CCRN',
+      location: 'Sunset Manor - Wing A',
+      certifications: ['RN License', 'IV Therapy', 'Critical Care', 'BLS/ACLS'],
+      workload: 12,
+      maxCapacity: 15,
+      status: 'active',
+      yearsExperience: 8,
+      specialties: ['Medication Management', 'Critical Care']
+    },
+    {
+      id: 'EMP002',
+      name: 'Dr. Mike Chen',
+      avatar: '/api/placeholder/60/60',
+      role: 'Licensed Practical Nurse',
+      credentials: 'LPN, CMA',
+      location: 'Golden Care - Memory Unit',
+      certifications: ['LPN License', 'Diabetes Management', 'Memory Care', 'CPR/BLS'],
+      workload: 8,
+      maxCapacity: 12,
+      status: 'active',
+      yearsExperience: 5,
+      specialties: ['Memory Care', 'Diabetes Management']
+    },
+    {
+      id: 'EMP003',
+      name: 'Dr. Lisa Rodriguez',
+      avatar: '/api/placeholder/60/60',
+      role: 'Wound Care Specialist',
+      credentials: 'RN, CWCN, MSN',
+      location: 'Riverside Lodge - Skilled Nursing',
+      certifications: ['RN License', 'Wound Care Certification', 'Advanced Practice', 'CPR/BLS'],
+      workload: 15,
+      maxCapacity: 18,
+      status: 'active',
+      yearsExperience: 12,
+      specialties: ['Advanced Wound Care', 'Skilled Nursing']
+    }
+  ]);
+
+  const locations = [
+    'Sunset Manor - Wing A',
+    'Sunset Manor - Wing B', 
+    'Golden Care - Memory Unit',
+    'Golden Care - Assisted Living',
+    'Riverside Lodge - Skilled Nursing',
+    'Riverside Lodge - Rehabilitation'
+  ];
+
+  const navigationItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: Home },
+    { id: 'delegations', label: 'Care Delegations', icon: ClipboardList },
+    { id: 'staff', label: 'Care Team', icon: UserCheck },
+    { id: 'individuals', label: 'Individuals', icon: User },
+    { id: 'locations', label: 'Care Facilities', icon: Building2 },
+    { id: 'reports', label: 'Analytics & Reports', icon: BarChart3 },
+    { id: 'compliance', label: 'Quality Assurance', icon: Shield },
+    { id: 'settings', label: 'System Settings', icon: Settings }
+  ];
+
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'completed': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'pending': return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'overdue': return 'bg-red-100 text-red-800 border-red-200';
+      case 'in-progress': return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getPriorityColor = (priority) => {
+    switch(priority) {
+      case 'high': return 'bg-red-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'low': return 'bg-green-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getUrgencyBadge = (urgency) => {
+    switch(urgency) {
+      case 'urgent': return 'bg-red-50 text-red-700 border border-red-200';
+      case 'priority': return 'bg-orange-50 text-orange-700 border border-orange-200';
+      case 'routine': return 'bg-green-50 text-green-700 border border-green-200';
+      default: return 'bg-gray-50 text-gray-700 border border-gray-200';
+    }
+  };
+
+  const getComplianceIcon = (compliance) => {
+    switch(compliance) {
+      case 'compliant': return <CheckCircle className="w-5 h-5 text-emerald-500" />;
+      case 'at-risk': return <AlertTriangle className="w-5 h-5 text-amber-500" />;
+      case 'non-compliant': return <AlertTriangle className="w-5 h-5 text-red-500" />;
+      default: return <Clock className="w-5 h-5 text-gray-500" />;
+    }
+  };
+
+  // Care types with required certifications
+  const careTypes = [
+    { id: 'medication', name: 'Medication Administration', certifications: ['RN License'], duration: 15, priority: 'high' },
+    { id: 'vitals', name: 'Vital Signs Assessment', certifications: ['LPN License', 'RN License'], duration: 30, priority: 'medium' },
+    { id: 'wound-care', name: 'Advanced Wound Care', certifications: ['Wound Care Certification'], duration: 45, priority: 'high' },
+    { id: 'diabetes', name: 'Diabetes Management', certifications: ['Diabetes Management'], duration: 20, priority: 'medium' },
+    { id: 'physical-therapy', name: 'Physical Therapy Session', certifications: ['Physical Therapy License'], duration: 60, priority: 'medium' },
+    { id: 'mental-health', name: 'Mental Health Support', certifications: ['Mental Health Certification'], duration: 45, priority: 'medium' },
+    { id: 'nutrition', name: 'Nutritional Counseling', certifications: ['Nutrition Certification'], duration: 30, priority: 'low' }
+  ];
+
+  // Enhanced individuals data with comprehensive profiles
+  const [individuals, setIndividuals] = useState([
+    { 
+      id: 'R001', 
+      name: 'Robert Smith', 
+      age: 78,
+      room: '101A', 
+      location: 'Sunset Manor - Wing A', 
+      careLevel: 'Assisted Living', 
+      conditions: ['Type 2 Diabetes', 'Hypertension', 'Mild Cognitive Impairment'],
+      allergies: ['Penicillin', 'Shellfish'],
+      emergencyContact: { name: 'Susan Smith', relation: 'Daughter', phone: '(555) 123-4567' },
+      admissionDate: '2024-03-15',
+      careTeam: ['Dr. Sarah Johnson', 'Dr. Mike Chen'],
+      locationHistory: [
+        { location: 'Sunset Manor - Wing A', date: '2024-03-15', reason: 'Initial admission', transferredBy: 'Admissions Team' }
+      ],
+      careHistory: [
+        { date: '2025-05-25', type: 'Medication Administration', provider: 'Dr. Sarah Johnson', status: 'completed', notes: 'Insulin administered, blood sugar stable' },
+        { date: '2025-05-24', type: 'Vital Signs Assessment', provider: 'Dr. Mike Chen', status: 'completed', notes: 'BP 130/80, pulse 72, temp normal' },
+        { date: '2025-05-23', type: 'Diabetes Management', provider: 'Dr. Sarah Johnson', status: 'completed', notes: 'Blood glucose monitoring training completed' }
+      ],
+      activeCare: [
+        { type: 'Medication Administration', frequency: 'Daily', nextDue: '2025-05-26 09:00', provider: 'Dr. Sarah Johnson' },
+        { type: 'Vital Signs Check', frequency: 'Twice daily', nextDue: '2025-05-25 18:00', provider: 'Dr. Mike Chen' }
+      ],
+      preferences: {
+        mobilityAid: 'Walker',
+        dietaryRestrictions: 'Diabetic diet, low sodium',
+        communicationNeeds: 'Speaks softly, hearing aid in right ear',
+        personalCareNotes: 'Prefers morning showers, independent with most ADLs'
+      }
+    },
+    { 
+      id: 'M002', 
+      name: 'Mary Jones', 
+      age: 82,
+      room: '205B', 
+      location: 'Golden Care - Memory Unit', 
+      careLevel: 'Memory Care', 
+      conditions: ['Alzheimer\'s Disease - Stage 2', 'Osteoarthritis', 'Depression'],
+      allergies: ['Latex'],
+      emergencyContact: { name: 'Robert Jones', relation: 'Son', phone: '(555) 987-6543' },
+      admissionDate: '2024-01-08',
+      careTeam: ['Dr. Mike Chen', 'Dr. Lisa Rodriguez'],
+      locationHistory: [
+        { location: 'Golden Care - Memory Unit', date: '2025-03-15', reason: 'Care level increase - cognitive decline', transferredBy: 'Dr. Williams' },
+        { location: 'Golden Care - Assisted Living', date: '2024-01-08', reason: 'Initial admission', transferredBy: 'Admissions Team' }
+      ],
+      careHistory: [
+        { date: '2025-05-25', type: 'Mental Health Support', provider: 'Dr. Mike Chen', status: 'completed', notes: 'Responsive to music therapy, mood improved' },
+        { date: '2025-05-24', type: 'Vital Signs Assessment', provider: 'Dr. Lisa Rodriguez', status: 'completed', notes: 'All vitals within normal limits' }
+      ],
+      activeCare: [
+        { type: 'Mental Health Support', frequency: 'Daily', nextDue: '2025-05-26 10:00', provider: 'Dr. Mike Chen' },
+        { type: 'Cognitive Stimulation', frequency: 'Twice daily', nextDue: '2025-05-25 15:00', provider: 'Activity Therapist' }
+      ],
+      preferences: {
+        mobilityAid: 'Wheelchair for long distances',
+        dietaryRestrictions: 'Soft foods, finger foods preferred',
+        communicationNeeds: 'Simple sentences, visual cues helpful',
+        personalCareNotes: 'Sundowning in evenings, responds well to familiar music'
+      }
+    },
+    { 
+      id: 'J003', 
+      name: 'James Brown', 
+      age: 71,
+      room: '315C', 
+      location: 'Riverside Lodge - Skilled Nursing', 
+      careLevel: 'Skilled Nursing', 
+      conditions: ['Post-Surgical Recovery (Hip Replacement)', 'Wound Care Required', 'Chronic Pain'],
+      allergies: ['Morphine', 'Codeine'],
+      emergencyContact: { name: 'Patricia Brown', relation: 'Wife', phone: '(555) 456-7890' },
+      admissionDate: '2025-02-20',
+      careTeam: ['Dr. Lisa Rodriguez', 'Dr. Jennifer Walsh'],
+      locationHistory: [
+        { location: 'Riverside Lodge - Skilled Nursing', date: '2025-02-20', reason: 'Post-surgical care', transferredBy: 'Hospital Discharge Team' }
+      ],
+      careHistory: [
+        { date: '2025-05-25', type: 'Advanced Wound Care', provider: 'Dr. Lisa Rodriguez', status: 'overdue', notes: 'Dressing change required, healing progressing slowly' },
+        { date: '2025-05-24', type: 'Physical Therapy', provider: 'Dr. Jennifer Walsh', status: 'completed', notes: 'Good progress with mobility, pain manageable' }
+      ],
+      activeCare: [
+        { type: 'Advanced Wound Care', frequency: 'Twice daily', nextDue: '2025-05-25 14:00', provider: 'Dr. Lisa Rodriguez' },
+        { type: 'Physical Therapy', frequency: 'Daily', nextDue: '2025-05-26 11:00', provider: 'Dr. Jennifer Walsh' },
+        { type: 'Pain Management', frequency: 'As needed', nextDue: 'PRN', provider: 'Dr. Lisa Rodriguez' }
+      ],
+      preferences: {
+        mobilityAid: 'Walker, wheelchair for longer distances',
+        dietaryRestrictions: 'Regular diet, high protein for healing',
+        communicationNeeds: 'Clear communicator, prefers direct approach',
+        personalCareNotes: 'Independent with upper body care, needs assistance with lower body'
+      }
+    },
+    { 
+      id: 'P004', 
+      name: 'Patricia Davis', 
+      age: 85,
+      room: '202A', 
+      location: 'Sunset Manor - Wing B', 
+      careLevel: 'Assisted Living', 
+      conditions: ['Rheumatoid Arthritis', 'Macular Degeneration', 'Osteoporosis'],
+      allergies: ['Aspirin'],
+      emergencyContact: { name: 'Michael Davis', relation: 'Son', phone: '(555) 234-5678' },
+      admissionDate: '2024-11-30',
+      careTeam: ['Dr. Amanda Taylor', 'Dr. David Kim'],
+      locationHistory: [
+        { location: 'Sunset Manor - Wing B', date: '2025-05-10', reason: 'Room preference - closer to activities', transferredBy: 'Dr. Amanda Taylor' },
+        { location: 'Sunset Manor - Wing A', date: '2024-11-30', reason: 'Initial admission', transferredBy: 'Admissions Team' }
+      ],
+      careHistory: [
+        { date: '2025-05-25', type: 'Vital Signs Assessment', provider: 'Dr. Amanda Taylor', status: 'completed', notes: 'BP elevated, medication adjustment needed' },
+        { date: '2025-05-24', type: 'Vision Support', provider: 'Dr. David Kim', status: 'completed', notes: 'Assistive devices checked, functioning well' }
+      ],
+      activeCare: [
+        { type: 'Medication Administration', frequency: 'Twice daily', nextDue: '2025-05-25 20:00', provider: 'Dr. Amanda Taylor' },
+        { type: 'Mobility Assistance', frequency: 'As needed', nextDue: 'PRN', provider: 'Care Team' }
+      ],
+      preferences: {
+        mobilityAid: 'Rollator walker with seat',
+        dietaryRestrictions: 'Calcium-rich diet, easy-grip utensils',
+        communicationNeeds: 'Large print materials, speaks loudly due to hearing',
+        personalCareNotes: 'Very social, enjoys group activities, needs encouragement with exercise'
+      }
+    }
+  ]);
+
+  // Filter available providers based on care type
+  const getAvailableProviders = (careTypeId) => {
+    const careType = careTypes.find(ct => ct.id === careTypeId);
+    if (!careType) return staff;
+    
+    return staff.filter(member => 
+      careType.certifications.some(cert => 
+        member.certifications.some(memberCert => memberCert.includes(cert.replace(' License', '').replace(' Certification', '')))
+      )
+    );
+  };
+
+  const handleFormUpdate = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+
+    // Auto-update related fields
+    if (field === 'careType') {
+      const selectedCareType = careTypes.find(ct => ct.id === value);
+      if (selectedCareType) {
+        setFormData(prev => ({
+          ...prev,
+          duration: selectedCareType.duration.toString(),
+          priority: selectedCareType.priority,
+          requiredCertifications: selectedCareType.certifications
+        }));
+      }
+    }
+
+    if (field === 'individual') {
+      const selectedIndividual = individuals.find(ind => ind.id === value);
+      if (selectedIndividual) {
+        setFormData(prev => ({
+          ...prev,
+          location: selectedIndividual.location
+        }));
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      individual: '',
+      careType: '',
+      provider: '',
+      priority: 'routine',
+      location: '',
+      date: '',
+      time: '',
+      duration: '30',
+      notes: '',
+      requiredCertifications: [],
+      specialInstructions: ''
+    });
+    setCurrentStep(1);
+  };
+
+  const handleModalClose = () => {
+    setShowCarePlanModal(false);
+    setShowStaffModal(false);
+    setShowIndividualModal(false);
+    setShowLocationChangeModal(false);
+    setSelectedIndividualId(null);
+    resetForm();
+  };
+
+  const handleLocationChange = (individualId, newLocation, reason) => {
+    setIndividuals(prev => prev.map(individual => {
+      if (individual.id === individualId) {
+        const updatedHistory = [...individual.locationHistory, {
+          location: newLocation,
+          date: new Date().toISOString().split('T')[0],
+          reason: reason,
+          transferredBy: 'Current User'
+        }];
+        
+        return {
+          ...individual,
+          location: newLocation,
+          locationHistory: updatedHistory
+        };
+      }
+      return individual;
+    }));
+
+    // Update any active delegations for this individual
+    // In a real app, this would trigger care plan updates
+    alert(`Location updated successfully! Care plans will be reviewed for any necessary adjustments.`);
+  };
+
+  const openIndividualProfile = (individualId) => {
+    setSelectedIndividualId(individualId);
+    setShowIndividualModal(true);
+  };
+
+  const validateStep = (step) => {
+    switch(step) {
+      case 1:
+        return formData.individual && formData.careType;
+      case 2:
+        return formData.provider && formData.date && formData.time;
+      case 3:
+        return true; // Review step
+      default:
+        return false;
+    }
+  };
+
+  const StatCard = ({ title, value, icon: Icon, trend, color = "text-teal-600", bgColor = "bg-teal-50" }) => (
+    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+          <p className={`text-3xl font-bold ${color} mb-2`}>{value}</p>
+          {trend && (
+            <div className="flex items-center gap-1">
+              <TrendingUp className="w-4 h-4 text-emerald-500" />
+              <p className="text-sm text-emerald-600 font-medium">{trend}</p>
+            </div>
+          )}
+        </div>
+        <div className={`p-3 rounded-xl ${bgColor}`}>
+          <Icon className={`w-7 h-7 ${color}`} />
+        </div>
+      </div>
+    </div>
+  );
+
+  // Enhanced Care Plan Modal Component
+  const CarePlanModal = () => {
+    const availableProviders = getAvailableProviders(formData.careType);
+    const selectedIndividual = individuals.find(ind => ind.id === formData.individual);
+    const selectedCareType = careTypes.find(ct => ct.id === formData.careType);
+    const selectedProvider = staff.find(member => member.id === formData.provider);
+
+    const StepIndicator = () => (
+      <div className="flex items-center justify-center mb-8">
+        {[1, 2, 3].map((step) => (
+          <div key={step} className="flex items-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-200 ${
+              step === currentStep 
+                ? 'bg-teal-600 text-white' 
+                : step < currentStep 
+                  ? 'bg-emerald-500 text-white' 
+                  : 'bg-gray-200 text-gray-500'
+            }`}>
+              {step < currentStep ? <CheckCircle className="w-5 h-5" /> : step}
+            </div>
+            {step < 3 && (
+              <div className={`w-16 h-1 mx-2 transition-all duration-200 ${
+                step < currentStep ? 'bg-emerald-500' : 'bg-gray-200'
+              }`} />
+            )}
+          </div>
+        ))}
+      </div>
+    );
+
+    const Step1Content = () => (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">Individual & Care Selection</h3>
         </div>
 
-        <div class="tabs">
-            <div class="tab active" onclick="showSheet('delegation-entry')">Delegation Entry</div>
-            <div class="tab" onclick="showSheet('employee-profiles')">Employee Profiles</div>
-            <div class="tab" onclick="showSheet('patient-tracking')">Patient Tracking</div>
-            <div class="tab" onclick="showSheet('task-tracker')">Task Tracker</div>
-            <div class="tab" onclick="showSheet('dashboard')">Dashboard</div>
-            <div class="tab" onclick="showSheet('reports')">Reports</div>
-            <div class="tab" onclick="showSheet('compliance')">Compliance</div>
-            <div class="tab" onclick="showSheet('admin-config')">Admin Config</div>
-            <div class="tab" onclick="showSheet('instructions')">User Guide</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Individual Selection */}
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-gray-700">Select Individual *</label>
+            <select 
+              value={formData.individual}
+              onChange={(e) => handleFormUpdate('individual', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+            >
+              <option value="">Choose an individual...</option>
+              {individuals.map(individual => (
+                <option key={individual.id} value={individual.id}>
+                  {individual.name} - Room {individual.room} ({individual.careLevel})
+                </option>
+              ))}
+            </select>
+            {selectedIndividual && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  <strong>Conditions:</strong> {selectedIndividual.conditions.join(', ')}
+                </p>
+                <p className="text-sm text-blue-700 mt-1">
+                  <strong>Location:</strong> {selectedIndividual.location}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Care Type Selection */}
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-gray-700">Type of Care *</label>
+            <select 
+              value={formData.careType}
+              onChange={(e) => handleFormUpdate('careType', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+            >
+              <option value="">Select care type...</option>
+              {careTypes.map(type => (
+                <option key={type.id} value={type.id}>
+                  {type.name} ({type.duration} min)
+                </option>
+              ))}
+            </select>
+            {selectedCareType && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-sm text-amber-800">
+                  <strong>Required Certifications:</strong> {selectedCareType.certifications.join(', ')}
+                </p>
+                <p className="text-sm text-amber-700 mt-1">
+                  <strong>Estimated Duration:</strong> {selectedCareType.duration} minutes
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
-        <!-- Delegation Entry Sheet -->
-        <div id="delegation-entry" class="sheet active">
-            <h2>Delegation Entry</h2>
-            <p>Create new delegations with automatic employee qualification and patient location validation.</p>
-            
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="🔍 Search delegations, employees, patients, or tasks..." 
-                       onkeyup="globalSearch.performSearch(this.value, 'delegation-entry')">
-                <div class="search-results" id="searchResults-delegation-entry"></div>
-            </div>
-            
-            <div class="alert-section" id="delegationAlerts">
-                <div class="alert-title">⚠️ System Status</div>
-                <div id="alertContent">System ready. All validation checks active.</div>
-            </div>
+        {/* Priority Selection */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-3">Care Priority</label>
+          <div className="grid grid-cols-3 gap-3">
+            {['routine', 'priority', 'urgent'].map((priority) => (
+              <button
+                key={priority}
+                type="button"
+                onClick={() => handleFormUpdate('priority', priority)}
+                className={`p-4 border-2 rounded-xl text-center transition-all duration-200 ${
+                  formData.priority === priority
+                    ? priority === 'urgent' 
+                      ? 'border-red-500 bg-red-50 text-red-700'
+                      : priority === 'priority'
+                        ? 'border-orange-500 bg-orange-50 text-orange-700'
+                        : 'border-green-500 bg-green-50 text-green-700'
+                    : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                <div className="font-semibold capitalize">{priority}</div>
+                <div className="text-sm mt-1">
+                  {priority === 'urgent' && 'Immediate attention'}
+                  {priority === 'priority' && 'Same day completion'}
+                  {priority === 'routine' && 'Standard timeline'}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
 
-            <button class="btn" onclick="addNewDelegation()">+ New Delegation</button>
-            <button class="btn btn-info" onclick="validateAllDelegations()">🔍 Validate All</button>
-            <button class="btn btn-warning" onclick="exportBackup()">💾 Export Backup</button>
-
-            <div class="table-container">
-                <table id="delegationTable">
-                    <thead>
-                        <tr>
-                            <th>Status</th>
-                            <th>Patient</th>
-                            <th>Current Location</th>
-                            <th>Task</th>
-                            <th>Assigned Nurse</th>
-                            <th>Qualified?</th>
-                            <th>Date</th>
-                            <th>Shift</th>
-                            <th>Priority</th>
-                            <th>Compliance</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="delegationTableBody">
-                    </tbody>
-                </table>
-            </div>
+    const Step2Content = () => (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">Care Provider & Scheduling</h3>
         </div>
 
-        <!-- Employee Profiles Sheet -->
-        <div id="employee-profiles" class="sheet">
-            <h2>Employee Profiles & Certifications</h2>
-            <p>Manage nurse profiles, certifications, and task authorizations across all locations.</p>
-
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="🔍 Search employees by name, location, or certification..." 
-                       onkeyup="globalSearch.performSearch(this.value, 'employee-profiles')">
-                <div class="search-results" id="searchResults-employee-profiles"></div>
-            </div>
-
-            <div class="filter-section">
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label class="filter-label">Filter by Location</label>
-                        <select id="employeeLocationFilter" onchange="filterEmployees()">
-                            <option value="">All Locations</option>
-                        </select>
+        {/* Available Providers */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-3">Available Care Providers *</label>
+          <div className="grid gap-4">
+            {availableProviders.length > 0 ? (
+              availableProviders.map(provider => (
+                <div
+                  key={provider.id}
+                  onClick={() => handleFormUpdate('provider', provider.id)}
+                  className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                    formData.provider === provider.id
+                      ? 'border-teal-500 bg-teal-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <img src={provider.avatar} alt={provider.name} className="w-12 h-12 rounded-full" />
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900">{provider.name}</div>
+                      <div className="text-sm text-gray-600">{provider.credentials}</div>
+                      <div className="text-sm text-gray-500">{provider.location}</div>
                     </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Certification Status</label>
-                        <select id="certificationFilter" onchange="filterEmployees()">
-                            <option value="">All Statuses</option>
-                            <option value="valid">Valid</option>
-                            <option value="expiring">Expiring Soon</option>
-                            <option value="expired">Expired</option>
-                        </select>
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-gray-700">
+                        Current Load: {provider.workload}/{provider.maxCapacity}
+                      </div>
+                      <div className={`text-sm ${
+                        provider.workload / provider.maxCapacity < 0.7 ? 'text-green-600' :
+                        provider.workload / provider.maxCapacity < 0.9 ? 'text-yellow-600' : 'text-red-600'
+                      }`}>
+                        {provider.workload / provider.maxCapacity < 0.7 ? 'Available' :
+                         provider.workload / provider.maxCapacity < 0.9 ? 'Busy' : 'At Capacity'}
+                      </div>
                     </div>
+                  </div>
                 </div>
-            </div>
-
-            <button class="btn" onclick="addNewEmployee()">+ Add Employee</button>
-            <button class="btn btn-warning" onclick="showExpiringCerts()">⚠️ Expiring Certifications</button>
-
-            <div class="table-container">
-                <table id="employeeTable">
-                    <thead>
-                        <tr>
-                            <th>Employee ID</th>
-                            <th>Name</th>
-                            <th>Primary Location</th>
-                            <th>Available Locations</th>
-                            <th>Authorized Tasks</th>
-                            <th>Certifications</th>
-                            <th>Status</th>
-                            <th>Last Updated</th>
-                        </tr>
-                    </thead>
-                    <tbody id="employeeTableBody">
-                    </tbody>
-                </table>
-            </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-amber-500" />
+                <p>No qualified providers available for this care type.</p>
+                <p className="text-sm mt-2">Required: {formData.requiredCertifications.join(', ')}</p>
+              </div>
+            )}
+          </div>
         </div>
 
-        <!-- Patient Tracking Sheet -->
-        <div id="patient-tracking" class="sheet">
-            <h2>Patient Location Tracking</h2>
-            <p>Monitor patient locations, transfers, and movement history across facilities.</p>
-
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="🔍 Search patients by name, ID, or location..." 
-                       onkeyup="globalSearch.performSearch(this.value, 'patient-tracking')">
-                <div class="search-results" id="searchResults-patient-tracking"></div>
-            </div>
-
-            <div class="filter-section">
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label class="filter-label">Current Location</label>
-                        <select id="patientLocationFilter" onchange="filterPatients()">
-                            <option value="">All Locations</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Show</label>
-                        <select id="patientStatusFilter" onchange="filterPatients()">
-                            <option value="current">Current Residents</option>
-                            <option value="transferred">Recently Transferred</option>
-                            <option value="all">All Patients</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <button class="btn" onclick="addNewPatient()">+ Add Patient</button>
-            <button class="btn btn-info" onclick="recordTransfer()">↔️ Record Transfer</button>
-
-            <div class="table-container">
-                <table id="patientTable">
-                    <thead>
-                        <tr>
-                            <th>Patient ID</th>
-                            <th>Name</th>
-                            <th>Current Location</th>
-                            <th>Room/Unit</th>
-                            <th>Admission Date</th>
-                            <th>Last Transfer</th>
-                            <th>Care Level</th>
-                            <th>Active Tasks</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="patientTableBody">
-                    </tbody>
-                </table>
-            </div>
+        {/* Scheduling */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Date *</label>
+            <input
+              type="date"
+              value={formData.date}
+              onChange={(e) => handleFormUpdate('date', e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Time *</label>
+            <input
+              type="time"
+              value={formData.time}
+              onChange={(e) => handleFormUpdate('time', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Duration (minutes)</label>
+            <input
+              type="number"
+              value={formData.duration}
+              onChange={(e) => handleFormUpdate('duration', e.target.value)}
+              min="15"
+              max="180"
+              step="15"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            />
+          </div>
         </div>
 
-        <!-- Task Tracker Sheet -->
-        <div id="task-tracker" class="sheet">
-            <h2>Task Tracker & Compliance</h2>
-            <p>Monitor task completion with employee qualification and patient location validation.</p>
-            
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="🔍 Search tasks by patient, nurse, or task type..." 
-                       onkeyup="globalSearch.performSearch(this.value, 'task-tracker')">
-                <div class="search-results" id="searchResults-task-tracker"></div>
-            </div>
+        {/* Special Instructions */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Special Instructions</label>
+          <textarea
+            value={formData.specialInstructions}
+            onChange={(e) => handleFormUpdate('specialInstructions', e.target.value)}
+            rows={3}
+            placeholder="Any specific care instructions or considerations..."
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
+          />
+        </div>
+      </div>
+    );
 
-            <div class="filter-section">
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label class="filter-label">Location</label>
-                        <select id="trackerLocationFilter" onchange="applyTrackerFilters()">
-                            <option value="">All Locations</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Status</label>
-                        <select id="trackerStatusFilter" onchange="applyTrackerFilters()">
-                            <option value="">All Statuses</option>
-                            <option value="Overdue">Overdue</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Reassigned">Reassigned</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Compliance</label>
-                        <select id="complianceFilter" onchange="applyTrackerFilters()">
-                            <option value="">All Tasks</option>
-                            <option value="Non-Compliant">Issues Only</option>
-                            <option value="Compliant">Compliant Only</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <table id="trackerTable">
-                    <thead>
-                        <tr>
-                            <th>🚨</th>
-                            <th>Patient</th>
-                            <th>Location</th>
-                            <th>Task</th>
-                            <th>Assigned Nurse</th>
-                            <th>Qualified?</th>
-                            <th>Location Match?</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Compliance</th>
-                        </tr>
-                    </thead>
-                    <tbody id="trackerTableBody">
-                    </tbody>
-                </table>
-            </div>
+    const Step3Content = () => (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">Care Plan Review</h3>
         </div>
 
-        <!-- Dashboard Sheet -->
-        <div id="dashboard" class="sheet">
-            <h2>Executive Dashboard</h2>
-            <p>Real-time overview of delegation performance, compliance, and workforce metrics.</p>
-
-            <div class="dashboard">
-                <div class="kpi-card">
-                    <div class="kpi-label">Total Active Delegations</div>
-                    <div class="kpi-number" id="totalDelegations">0</div>
+        <div className="bg-gray-50 rounded-xl p-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">Individual Information</h4>
+              {selectedIndividual && (
+                <div className="space-y-2">
+                  <p><strong>Name:</strong> {selectedIndividual.name}</p>
+                  <p><strong>Room:</strong> {selectedIndividual.room}</p>
+                  <p><strong>Care Level:</strong> {selectedIndividual.careLevel}</p>
+                  <p><strong>Location:</strong> {selectedIndividual.location}</p>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Completion Rate</div>
-                    <div class="kpi-number" id="completionRate">0%</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Compliance Score</div>
-                    <div class="kpi-number" id="complianceScore">0%</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Active Employees</div>
-                    <div class="kpi-number" id="activeEmployees">0</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Current Patients</div>
-                    <div class="kpi-number" id="currentPatients">0</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Overdue Tasks</div>
-                    <div class="kpi-number" id="overdueTasks" style="color: #dc3545;">0</div>
-                </div>
+              )}
             </div>
 
-            <div class="chart-container">
-                <div class="chart-title">Tasks by Location</div>
-                <div class="bar-chart" id="locationChart"></div>
-            </div>
-
-            <div class="chart-container">
-                <div class="chart-title">Employee Workload Distribution</div>
-                <div class="bar-chart" id="workloadChart"></div>
-            </div>
-
-            <div class="chart-container">
-                <div class="chart-title">Patient Distribution by Location</div>
-                <div class="bar-chart" id="patientDistributionChart"></div>
-            </div>
-        </div>
-
-        <!-- Reports Sheet -->
-        <div id="reports" class="sheet">
-            <h2>Custom Reports & Analytics</h2>
-            <p>Generate custom reports and export data for analysis.</p>
-            
-            <div class="filter-section">
-                <h3>Report Parameters</h3>
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label class="filter-label">Report Type</label>
-                        <select id="reportType" onchange="updateReportOptions()">
-                            <option value="delegation-summary">Delegation Summary</option>
-                            <option value="employee-workload">Employee Workload</option>
-                            <option value="compliance-report">Compliance Report</option>
-                            <option value="patient-activity">Patient Activity</option>
-                            <option value="certification-status">Certification Status</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Start Date</label>
-                        <input type="date" id="reportStartDate" class="form-control">
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">End Date</label>
-                        <input type="date" id="reportEndDate" class="form-control">
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Location</label>
-                        <select id="reportLocation">
-                            <option value="">All Locations</option>
-                        </select>
-                    </div>
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">Care Details</h4>
+              {selectedCareType && (
+                <div className="space-y-2">
+                  <p><strong>Care Type:</strong> {selectedCareType.name}</p>
+                  <p><strong>Priority:</strong> <span className="capitalize">{formData.priority}</span></p>
+                  <p><strong>Duration:</strong> {formData.duration} minutes</p>
+                  <p><strong>Scheduled:</strong> {formData.date} at {formData.time}</p>
                 </div>
-                <div class="filter-row">
-                    <button class="btn" onclick="generateReport()">📊 Generate Report</button>
-                    <button class="btn btn-info" onclick="exportReport()">📄 Export to CSV</button>
-                    <button class="btn btn-info" onclick="exportToPDF()">📑 Export to PDF</button>
-                </div>
+              )}
             </div>
-            
-            <div id="reportContainer">
-                <div class="chart-container">
-                    <div class="chart-title">Report will appear here</div>
-                    <p>Select report parameters and click "Generate Report" to view results.</p>
-                </div>
-            </div>
-        </div>
+          </div>
 
-        <!-- Compliance Monitor Sheet -->
-        <div id="compliance" class="sheet">
-            <h2>Compliance Monitor</h2>
-            <p>Track certification status, qualification compliance, and regulatory requirements.</p>
-
-            <div class="alert-section">
-                <div class="alert-title">🚨 Critical Compliance Alerts</div>
-                <div id="complianceAlerts">
-                    <div class="alert-item">
-                        <span>Expired Certifications</span>
-                        <span id="expiredCertCount">0</span>
-                    </div>
-                    <div class="alert-item">
-                        <span>Unqualified Task Assignments</span>
-                        <span id="unqualifiedCount">0</span>
-                    </div>
-                    <div class="alert-item">
-                        <span>Location Mismatches</span>
-                        <span id="locationMismatchCount">0</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="chart-container">
-                <div class="chart-title">Certification Expiration Calendar</div>
-                <div id="certificationCalendar">
-                    <!-- Upcoming expirations will be listed here -->
-                </div>
-            </div>
-
-            <div class="table-container">
-                <table id="complianceTable">
-                    <thead>
-                        <tr>
-                            <th>Issue Type</th>
-                            <th>Employee/Task</th>
-                            <th>Details</th>
-                            <th>Risk Level</th>
-                            <th>Due Date</th>
-                            <th>Action Required</th>
-                        </tr>
-                    </thead>
-                    <tbody id="complianceTableBody">
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Admin Config Sheet -->
-        <div id="admin-config" class="sheet">
-            <h2>System Configuration</h2>
-            <p><strong>⚠️ Admin Only:</strong> Manage system settings, reference data, and compliance rules.</p>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
+          {selectedProvider && (
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">Assigned Care Provider</h4>
+              <div className="flex items-center gap-4 bg-white rounded-lg p-4">
+                <img src={selectedProvider.avatar} alt={selectedProvider.name} className="w-16 h-16 rounded-full" />
                 <div>
-                    <h3>Locations & Units</h3>
-                    <div id="locationsConfig">
-                        <div>Sunset Manor - Wing A</div>
-                        <div>Sunset Manor - Wing B</div>
-                        <div>Golden Care - Memory Unit</div>
-                        <div>Golden Care - Assisted Living</div>
-                        <div>Riverside Lodge - Skilled Nursing</div>
-                        <div>Riverside Lodge - Rehabilitation</div>
-                    </div>
+                  <p className="font-semibold">{selectedProvider.name}</p>
+                  <p className="text-gray-600">{selectedProvider.credentials}</p>
+                  <p className="text-sm text-gray-500">{selectedProvider.specialties.join(', ')}</p>
                 </div>
-                
-                <div>
-                    <h3>Delegatable Tasks</h3>
-                    <div id="tasksConfig">
-                        <div>Medication Administration (RN Required)</div>
-                        <div>Vital Signs Check (LPN/RN)</div>
-                        <div>Wound Care (Certified)</div>
-                        <div>Blood Sugar Test (Certified)</div>
-                        <div>Physical Therapy (PT/PTA)</div>
-                        <div>Insulin Injection (RN Required)</div>
-                        <div>Catheter Care (Certified)</div>
-                        <div>IV Management (RN Required)</div>
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>Required Certifications</h3>
-                    <div id="certificationsConfig">
-                        <div>RN License</div>
-                        <div>LPN License</div>
-                        <div>CNA Certification</div>
-                        <div>Wound Care Certification</div>
-                        <div>Diabetes Management</div>
-                        <div>IV Therapy Certification</div>
-                        <div>CPR/BLS</div>
-                        <div>Physical Therapy License</div>
-                    </div>
-                </div>
-                
-                <div>
-                    <h3>Care Levels</h3>
-                    <div id="careLevelsConfig">
-                        <div>Independent Living</div>
-                        <div>Assisted Living</div>
-                        <div>Memory Care</div>
-                        <div>Skilled Nursing</div>
-                        <div>Rehabilitation</div>
-                        <div>Hospice Care</div>
-                    </div>
-                </div>
+              </div>
             </div>
-        </div>
+          )}
 
-        <!-- Instructions Sheet -->
-        <div id="instructions" class="sheet">
-            <div class="instructions">
-                <h2>🏥 Advanced Nursing Delegation Management System</h2>
-                <h2>Complete User Guide</h2>
-
-                <h3>🌟 System Overview</h3>
-                <p>This comprehensive system manages nursing delegations while tracking employee qualifications and patient movements across multiple care facilities. It ensures compliance, prevents unauthorized task assignments, and maintains accurate patient location data.</p>
-
-                <h3>📋 Core Features</h3>
-                <ul>
-                    <li><strong>Professional Modal Forms</strong> - Smart data entry with real-time validation</li>
-                    <li><strong>Auto-Save Technology</strong> - Data automatically saved every 30 seconds</li>
-                    <li><strong>Global Search</strong> - Find any employee, patient, or delegation instantly</li>
-                    <li><strong>Smart Validation</strong> - Prevents unqualified task assignments</li>
-                    <li><strong>Compliance Monitoring</strong> - Real-time certification and location checking</li>
-                    <li><strong>Advanced Reporting</strong> - Custom reports with export capabilities</li>
-                    <li><strong>Export/Backup</strong> - Complete data backup and restore functionality</li>
-                </ul>
-
-                <h3>🚀 Quick Start Guide</h3>
-
-                <h3>1. Creating New Delegations</h3>
-                <ul>
-                    <li>Click "New Delegation" button</li>
-                    <li>Professional modal form opens with smart dropdowns</li>
-                    <li>System automatically filters qualified nurses based on task selection</li>
-                    <li>Real-time validation prevents compliance issues</li>
-                    <li>Data is automatically saved and backed up</li>
-                </ul>
-
-                <h3>2. Using Global Search</h3>
-                <ul>
-                    <li>Use search boxes on each sheet to find data instantly</li>
-                    <li>Search by employee name, patient name, task type, or location</li>
-                    <li>Click search results to jump directly to the item</li>
-                    <li>Search works across all data types and sheets</li>
-                </ul>
-
-                <h3>3. Managing Employee Profiles</h3>
-                <ul>
-                    <li>Track certifications with expiration dates</li>
-                    <li>Monitor which locations each employee can work</li>
-                    <li>View task authorizations based on certifications</li>
-                    <li>Get alerts for expiring certifications</li>
-                </ul>
-
-                <h3>4. Patient Location Tracking</h3>
-                <ul>
-                    <li>Monitor current patient locations and room assignments</li>
-                    <li>Track transfer history between facilities and units</li>
-                    <li>System automatically updates delegations when patients move</li>
-                    <li>Maintain complete audit trail of patient movements</li>
-                </ul>
-
-                <h3>5. Dashboard Analytics</h3>
-                <ul>
-                    <li>Real-time KPIs showing system performance</li>
-                    <li>Completion rates and compliance scores</li>
-                    <li>Workload distribution across employees</li>
-                    <li>Patient distribution by location</li>
-                </ul>
-
-                <h3>6. Custom Reporting</h3>
-                <ul>
-                    <li>Generate detailed reports on any aspect of operations</li>
-                    <li>Filter by date range, location, or employee</li>
-                    <li>Export reports to CSV for further analysis</li>
-                    <li>Compliance reports for regulatory requirements</li>
-                </ul>
-
-                <h3>📊 Advanced Features</h3>
-
-                <h3>Smart Validation System</h3>
-                <ul>
-                    <li><strong>Qualification Checking:</strong> Only qualified employees appear for specific tasks</li>
-                    <li><strong>Location Validation:</strong> Ensures employees are authorized for patient locations</li>
-                    <li><strong>Date Validation:</strong> Prevents backdating and scheduling conflicts</li>
-                    <li><strong>Certification Monitoring:</strong> Tracks expiration dates automatically</li>
-                </ul>
-
-                <h3>Compliance Features</h3>
-                <ul>
-                    <li><strong>Real-time Monitoring:</strong> Instant alerts for compliance issues</li>
-                    <li><strong>Regulatory Tracking:</strong> Built-in healthcare compliance rules</li>
-                    <li><strong>Audit Trail:</strong> Complete history of all changes and assignments</li>
-                    <li><strong>Risk Assessment:</strong> Proactive identification of potential issues</li>
-                </ul>
-
-                <h3>Data Management</h3>
-                <ul>
-                    <li><strong>Auto-Save:</strong> Data automatically saved every 30 seconds</li>
-                    <li><strong>Backup/Restore:</strong> Export data for safekeeping</li>
-                    <li><strong>Data Persistence:</strong> No data loss on page refresh</li>
-                    <li><strong>Import/Export:</strong> Transfer data between systems</li>
-                </ul>
-
-                <h3>🔒 Security & Privacy</h3>
-                <ul>
-                    <li>All patient data stored locally in browser</li>
-                    <li>No data transmitted to external servers</li>
-                    <li>Regular backup reminders and export capabilities</li>
-                    <li>Secure local storage with automatic encryption</li>
-                </ul>
-
-                <h3>💡 Pro Tips</h3>
-                <ul>
-                    <li><strong>Regular Backups:</strong> Export data weekly using "Export Backup" button</li>
-                    <li><strong>Certification Calendar:</strong> Check compliance monitor for upcoming expirations</li>
-                    <li><strong>Search Everything:</strong> Use global search to find any information quickly</li>
-                    <li><strong>Filter Views:</strong> Use filters to focus on specific locations or time periods</li>
-                    <li><strong>Mobile Friendly:</strong> System works on tablets and mobile devices</li>
-                </ul>
-
-                <h3>🎯 Key Benefits</h3>
-                <ul>
-                    <li><strong>Time Savings:</strong> 50% faster delegation creation with smart forms</li>
-                    <li><strong>Error Prevention:</strong> 80% reduction in compliance issues</li>
-                    <li><strong>Professional Appearance:</strong> Enterprise-grade interface</li>
-                    <li><strong>Real-time Insights:</strong> Instant performance and compliance metrics</li>
-                    <li><strong>Scalable Solution:</strong> Grows with your organization</li>
-                </ul>
-
-                <h3>📈 System Requirements</h3>
-                <ul>
-                    <li>Modern web browser (Chrome, Firefox, Safari, Edge)</li>
-                    <li>Internet connection for initial loading</li>
-                    <li>Works offline after initial load</li>
-                    <li>Mobile and tablet compatible</li>
-                    <li>No software installation required</li>
-                </ul>
-
-                <h3>⚠️ Before Going Live</h3>
-                <p><strong>IMPORTANT:</strong> This system contains sample demonstration data.</p>
-                <ol>
-                    <li>Review all sample employees, patients, and delegations</li>
-                    <li>Replace sample data with your actual facility information</li>
-                    <li>Update location names, employee certifications, and patient data</li>
-                    <li>Customize task types and certification requirements</li>
-                    <li>Train staff on the new system features</li>
-                    <li>Establish regular backup procedures</li>
-                </ol>
-
-                <h3>📞 Support & Development</h3>
-                <p>This system represents a professional-grade healthcare management solution. For customization, additional features, or commercial licensing opportunities, this platform can be extended into a full SaaS offering for healthcare facilities.</p>
+          {formData.specialInstructions && (
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">Special Instructions</h4>
+              <p className="bg-white rounded-lg p-4 text-gray-700">{formData.specialInstructions}</p>
             </div>
+          )}
         </div>
+
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-emerald-600" />
+            <span className="font-semibold text-emerald-800">Care Plan Validation Complete</span>
+          </div>
+          <p className="text-emerald-700 text-sm mt-1">
+            All requirements verified. Provider is qualified and available for the selected care type.
+          </p>
+        </div>
+      </div>
+    );
+
+    return (
+      <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 ${showCarePlanModal ? '' : 'hidden'}`}>
+        <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Create New Care Plan</h2>
+              <button 
+                onClick={handleModalClose}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <StepIndicator />
+
+            <div className="min-h-[400px]">
+              {currentStep === 1 && <Step1Content />}
+              {currentStep === 2 && <Step2Content />}
+              {currentStep === 3 && <Step3Content />}
+            </div>
+
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+              <button
+                onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
+                className={`px-6 py-3 rounded-xl font-semibold transition-colors ${
+                  currentStep === 1 
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+                disabled={currentStep === 1}
+              >
+                Previous
+              </button>
+
+              <div className="text-sm text-gray-500">
+                Step {currentStep} of 3
+              </div>
+
+              {currentStep < 3 ? (
+                <button
+                  onClick={() => validateStep(currentStep) && setCurrentStep(currentStep + 1)}
+                  className={`px-6 py-3 rounded-xl font-semibold transition-colors ${
+                    validateStep(currentStep)
+                      ? 'bg-teal-600 text-white hover:bg-teal-700'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                  disabled={!validateStep(currentStep)}
+                >
+                  Next Step
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    // Here you would submit the form
+                    alert('Care plan created successfully!');
+                    handleModalClose();
+                  }}
+                  className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-colors"
+                >
+                  Create Care Plan
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const Sidebar = () => (
+    <>
+      {/* Mobile Overlay */}
+      {isMobile && sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={`${
+        isMobile 
+          ? `fixed left-0 top-0 h-full z-50 transform transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`
+          : sidebarOpen ? 'w-72' : 'w-20'
+      } ${isMobile ? 'w-80' : ''} bg-white border-r border-gray-200 transition-all duration-300 flex flex-col`}>
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center shadow-sm">
+              <Heart className="w-6 h-6 text-white" />
+            </div>
+            {(sidebarOpen || isMobile) && (
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">WellNest</h1>
+                <p className="text-sm text-gray-500">Care Management</p>
+              </div>
+            )}
+            {isMobile && (
+              <button 
+                onClick={() => setSidebarOpen(false)}
+                className="ml-auto p-2 text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+        
+        <nav className="flex-1 p-4">
+          <div className="space-y-2">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    if (isMobile) setSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                    isActive 
+                      ? 'bg-teal-50 text-teal-700 border border-teal-200' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  {(sidebarOpen || isMobile) && (
+                    <>
+                      <span>{item.label}</span>
+                      {isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
+                    </>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* Mobile Bottom Actions */}
+        {isMobile && (
+          <div className="p-4 border-t border-gray-200">
+            <button 
+              onClick={() => {
+                setShowCarePlanModal(true);
+                setSidebarOpen(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 bg-teal-600 text-white rounded-xl font-medium hover:bg-teal-700 transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+              <span>New Care Plan</span>
+            </button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+
+  const DashboardView = () => (
+    <div className="space-y-8">
+      {/* Welcome Header */}
+      <div className="bg-gradient-to-r from-teal-500 to-blue-600 rounded-2xl p-8 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">Welcome back, Admin</h2>
+            <p className="text-teal-100 text-lg">Here's your care facility overview for today</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+            <Calendar className="w-8 h-8 text-white" />
+          </div>
+        </div>
+      </div>
+
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard 
+          title="Active Care Plans" 
+          value="156" 
+          icon={ClipboardList}
+          trend="+12 from yesterday"
+        />
+        <StatCard 
+          title="Care Completion Rate" 
+          value="94.2%" 
+          icon={TrendingUp}
+          trend="+2.1% this week"
+          color="text-emerald-600"
+          bgColor="bg-emerald-50"
+        />
+        <StatCard 
+          title="Quality Score" 
+          value="97.8%" 
+          icon={Award}
+          trend="Excellent"
+          color="text-blue-600"
+          bgColor="bg-blue-50"
+        />
+        <StatCard 
+          title="Care Team Members" 
+          value="28" 
+          icon={Users}
+          trend="3 on break"
+          color="text-purple-600"
+          bgColor="bg-purple-50"
+        />
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+        <h3 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <button 
+            onClick={() => setShowCarePlanModal(true)}
+            className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl hover:from-teal-100 hover:to-teal-200 transition-all duration-200 group"
+          >
+            <div className="p-3 bg-teal-500 rounded-xl group-hover:scale-110 transition-transform duration-200">
+              <Plus className="w-6 h-6 text-white" />
+            </div>
+            <span className="font-medium text-teal-700">New Care Plan</span>
+          </button>
+          <button 
+            onClick={() => setShowStaffModal(true)}
+            className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl hover:from-blue-100 hover:to-blue-200 transition-all duration-200 group"
+          >
+            <div className="p-3 bg-blue-500 rounded-xl group-hover:scale-110 transition-transform duration-200">
+              <UserCheck className="w-6 h-6 text-white" />
+            </div>
+            <span className="font-medium text-blue-700">Assign Caregiver</span>
+          </button>
+          <button className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl hover:from-purple-100 hover:to-purple-200 transition-all duration-200 group">
+            <div className="p-3 bg-purple-500 rounded-xl group-hover:scale-110 transition-transform duration-200">
+              <BarChart3 className="w-6 h-6 text-white" />
+            </div>
+            <span className="font-medium text-purple-700">View Reports</span>
+          </button>
+          <button className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl hover:from-emerald-100 hover:to-emerald-200 transition-all duration-200 group">
+            <div className="p-3 bg-emerald-500 rounded-xl group-hover:scale-110 transition-transform duration-200">
+              <Shield className="w-6 h-6 text-white" />
+            </div>
+            <span className="font-medium text-emerald-700">Quality Check</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Recent Activity & Alerts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold text-gray-900">Recent Care Activities</h3>
+            <span className="text-sm text-gray-500">Last 24 hours</span>
+          </div>
+          <div className="space-y-4">
+            {delegations.slice(0, 4).map((delegation) => (
+              <div key={delegation.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                <img 
+                  src={delegation.nurse.avatar} 
+                  alt={delegation.nurse.name}
+                  className="w-12 h-12 rounded-full border-2 border-white shadow-sm"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900">{delegation.task}</p>
+                  <p className="text-sm text-gray-500">{delegation.individual.name} • {delegation.location}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getUrgencyBadge(delegation.urgency)}`}>
+                      {delegation.urgency}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {getComplianceIcon(delegation.compliance)}
+                  <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getStatusColor(delegation.status)}`}>
+                    {delegation.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold text-gray-900">Quality Alerts</h3>
+            <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">2 Active</span>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-start gap-4 p-4 bg-amber-50 rounded-xl border border-amber-200">
+              <AlertTriangle className="w-6 h-6 text-amber-500 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">Certification Expiring Soon</p>
+                <p className="text-sm text-gray-600 mt-1">Lisa Rodriguez - Wound Care Certification expires in 5 days</p>
+                <button className="text-amber-700 text-sm font-medium mt-2 hover:text-amber-800">
+                  Review Details →
+                </button>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+              <CheckCircle className="w-6 h-6 text-emerald-500 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">Care Plans Up to Date</p>
+                <p className="text-sm text-gray-600 mt-1">All individuals in Wing A have current care assessments</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <Star className="w-6 h-6 text-blue-500 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">Excellence Recognition</p>
+                <p className="text-sm text-gray-600 mt-1">Sarah Johnson achieved 100% care plan completion this week</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  );
 
-  <!-- Add these enhanced modals and functionality to your existing index.html -->
-<!-- Insert these modals BEFORE the closing </body> tag, after the existing delegation modal -->
-
-<!-- Employee Management Modal -->
-<div id="employeeModal" class="modal-overlay">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 id="employeeModalTitle">Edit Employee Profile</h3>
+  const DelegationsView = () => (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900">Care Delegations</h2>
+          <p className="text-gray-600 mt-1">Manage nursing care assignments and track quality compliance</p>
         </div>
-        <div class="modal-body">
-            <form id="employeeForm">
-                <div class="form-group">
-                    <label class="form-label">Employee ID *</label>
-                    <input type="text" id="employeeId" class="form-control" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Full Name *</label>
-                    <input type="text" id="employeeName" class="form-control" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Primary Location *</label>
-                    <select id="employeePrimaryLocation" class="form-control" required>
-                        <option value="">Select Primary Location</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Available Locations</label>
-                    <div id="availableLocationsContainer">
-                        <!-- Dynamic checkboxes will be inserted here -->
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-200 transition-colors">
+            <Download className="w-5 h-5" />
+            Export
+          </button>
+          <button 
+            onClick={() => setShowCarePlanModal(true)}
+            className="flex items-center gap-2 bg-teal-600 text-white px-6 py-2 rounded-xl hover:bg-teal-700 transition-colors shadow-sm"
+          >
+            <Plus className="w-5 h-5" />
+            New Care Plan
+          </button>
+        </div>
+      </div>
+
+      {/* Enhanced Filters */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="relative">
+            <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search care plans, individuals, or staff..."
+              className="pl-12 pr-4 py-3 w-full border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <select 
+            className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+            value={selectedLocation}
+            onChange={(e) => setSelectedLocation(e.target.value)}
+          >
+            <option value="">All Care Facilities</option>
+            {locations.map(location => (
+              <option key={location} value={location}>{location}</option>
+            ))}
+          </select>
+          <select className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="overdue">Needs Attention</option>
+          </select>
+          <select className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200">
+            <option value="">All Priorities</option>
+            <option value="urgent">Urgent</option>
+            <option value="priority">Priority</option>
+            <option value="routine">Routine</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Enhanced Care Plans Table */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Individual</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Care Assignment</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Care Provider</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Facility</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Schedule</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Quality</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {delegations.map((delegation) => (
+                <tr key={delegation.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{delegation.individual.name}</div>
+                      <div className="text-sm text-gray-500">{delegation.individual.id} • Room {delegation.individual.room}</div>
+                      <span className="inline-block mt-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                        {delegation.individual.careLevel}
+                      </span>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Certifications</label>
-                    <div id="certificationsContainer">
-                        <!-- Dynamic certification entries will be inserted here -->
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-3 h-3 rounded-full mt-1 ${getPriorityColor(delegation.priority)}`}></div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-900">{delegation.task}</span>
+                        <div className="mt-1">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getUrgencyBadge(delegation.urgency)}`}>
+                            {delegation.urgency}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <button type="button" class="btn btn-info" onclick="addCertification()">+ Add Certification</button>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Authorized Tasks</label>
-                    <div id="authorizedTasksContainer">
-                        <!-- Dynamic task checkboxes will be inserted here -->
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src={delegation.nurse.avatar} 
+                        alt={delegation.nurse.name}
+                        className="w-10 h-10 rounded-full border-2 border-gray-200"
+                      />
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{delegation.nurse.name}</div>
+                        <div className="text-sm text-gray-500">{delegation.nurse.credentials}</div>
+                      </div>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Status</label>
-                    <select id="employeeStatus" class="form-control">
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="On Leave">On Leave</option>
-                        <option value="Training">Training</option>
-                    </select>
-                </div>
-                
-                <div id="employeeValidationErrors"></div>
-            </form>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm text-gray-600">{delegation.location}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-900 font-medium">{delegation.date}</div>
+                    <div className="text-sm text-gray-500">{delegation.time}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getStatusColor(delegation.status)}`}>
+                      {delegation.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      {getComplianceIcon(delegation.compliance)}
+                      <span className="text-sm text-gray-600 capitalize">{delegation.compliance}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <button className="text-teal-600 hover:text-teal-700 text-sm font-medium hover:bg-teal-50 px-3 py-1 rounded-lg transition-all duration-200">
+                      Manage
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <div class="modal-footer">
-            <button type="button" class="btn-secondary" onclick="closeEmployeeModal()">Cancel</button>
-            <button type="button" class="btn btn-danger" onclick="deleteEmployee()" id="deleteEmployeeBtn" style="display: none;">Delete Employee</button>
-            <button type="button" class="btn-primary" onclick="saveEmployee()">Save Employee</button>
-        </div>
+      </div>
     </div>
-</div>
+  );
 
-<!-- Patient Management Modal -->
-<div id="patientModal" class="modal-overlay">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 id="patientModalTitle">Edit Patient Information</h3>
+  const StaffView = () => (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900">Care Team Management</h2>
+          <p className="text-gray-600 mt-1">Manage healthcare professionals, credentials, and specializations</p>
         </div>
-        <div class="modal-body">
-            <form id="patientForm">
-                <div class="form-group">
-                    <label class="form-label">Patient ID *</label>
-                    <input type="text" id="patientId" class="form-control" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Full Name *</label>
-                    <input type="text" id="patientName" class="form-control" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Current Location *</label>
-                    <select id="patientCurrentLocation" class="form-control" required>
-                        <option value="">Select Current Location</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Room/Unit</label>
-                    <input type="text" id="patientRoom" class="form-control" placeholder="e.g., Room 101A">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Admission Date</label>
-                    <input type="date" id="patientAdmissionDate" class="form-control">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Care Level</label>
-                    <select id="patientCareLevel" class="form-control">
-                        <option value="Independent Living">Independent Living</option>
-                        <option value="Assisted Living">Assisted Living</option>
-                        <option value="Memory Care">Memory Care</option>
-                        <option value="Skilled Nursing">Skilled Nursing</option>
-                        <option value="Rehabilitation">Rehabilitation</option>
-                        <option value="Hospice Care">Hospice Care</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Status</label>
-                    <select id="patientStatus" class="form-control">
-                        <option value="Current Resident">Current Resident</option>
-                        <option value="Transferred">Transferred</option>
-                        <option value="Discharged">Discharged</option>
-                        <option value="Hospital Stay">Hospital Stay</option>
-                    </select>
-                </div>
-                
-                <div id="patientValidationErrors"></div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn-secondary" onclick="closePatientModal()">Cancel</button>
-            <button type="button" class="btn btn-info" onclick="recordPatientTransfer()" id="transferPatientBtn">Record Transfer</button>
-            <button type="button" class="btn btn-danger" onclick="deletePatient()" id="deletePatientBtn" style="display: none;">Archive Patient</button>
-            <button type="button" class="btn-primary" onclick="savePatient()">Save Patient</button>
-        </div>
-    </div>
-</div>
+        <button 
+          onClick={() => setShowStaffModal(true)}
+          className="flex items-center gap-2 bg-teal-600 text-white px-6 py-2 rounded-xl hover:bg-teal-700 transition-colors shadow-sm"
+        >
+          <Plus className="w-5 h-5" />
+          Add Team Member
+        </button>
+      </div>
 
-<!-- Enhanced Delegation Modal (replaces existing one) -->
-<div id="enhancedDelegationModal" class="modal-overlay">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 id="enhancedModalTitle">Manage Delegation</h3>
-        </div>
-        <div class="modal-body">
-            <form id="enhancedDelegationForm">
-                <div class="form-group">
-                    <label class="form-label">Patient *</label>
-                    <select id="enhancedModalPatientId" class="form-control" required>
-                        <option value="">Select Patient</option>
-                    </select>
+      {/* Enhanced Staff Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+        {staff.map((member) => (
+          <div key={member.id} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="relative">
+                <img 
+                  src={member.avatar} 
+                  alt={member.name}
+                  className="w-16 h-16 rounded-2xl border-2 border-gray-200"
+                />
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <CheckCircle className="w-3 h-3 text-white" />
                 </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Task *</label>
-                    <select id="enhancedModalTask" class="form-control" required onchange="updateEnhancedAvailableNurses()">
-                        <option value="">Select Task</option>
-                    </select>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-gray-900">{member.name}</h3>
+                <p className="text-sm text-gray-600 mb-1">{member.role}</p>
+                <p className="text-sm text-teal-600 font-medium">{member.credentials}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <MapPin className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-500">{member.location}</span>
                 </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Assigned Nurse *</label>
-                    <select id="enhancedModalEmployeeId" class="form-control" required>
-                        <option value="">Select Nurse</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Date *</label>
-                    <input type="date" id="enhancedModalDate" class="form-control" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Shift *</label>
-                    <select id="enhancedModalShift" class="form-control" required>
-                        <option value="">Select Shift</option>
-                        <option value="Day">Day</option>
-                        <option value="Evening">Evening</option>
-                        <option value="Night">Night</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Delegator *</label>
-                    <input type="text" id="enhancedModalDelegator" class="form-control" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Priority</label>
-                    <select id="enhancedModalPriority" class="form-control">
-                        <option value="Low">Low</option>
-                        <option value="Medium" selected>Medium</option>
-                        <option value="High">High</option>
-                        <option value="Critical">Critical</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Status</label>
-                    <select id="enhancedModalStatus" class="form-control" onchange="showStatusReasonField()">
-                        <option value="Pending">Pending</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Overdue">Overdue</option>
-                        <option value="Reassigned">Reassigned</option>
-                        <option value="Cancelled">Cancelled</option>
-                    </select>
-                </div>
-                
-                <div class="form-group" id="statusReasonGroup" style="display: none;">
-                    <label class="form-label">Reason for Status Change</label>
-                    <textarea id="statusReason" class="form-control" rows="2" placeholder="Explain reason for status change..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Notes</label>
-                    <textarea id="delegationNotes" class="form-control" rows="3" placeholder="Additional notes or comments..."></textarea>
-                </div>
-                
-                <div id="enhancedModalValidationErrors"></div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn-secondary" onclick="closeEnhancedModal()">Cancel</button>
-            <button type="button" class="btn btn-info" onclick="duplicateDelegation()" id="duplicateBtn" style="display: none;">Duplicate</button>
-            <button type="button" class="btn btn-danger" onclick="deleteDelegation()" id="deleteDelegationBtn" style="display: none;">Delete</button>
-            <button type="button" class="btn-primary" onclick="saveEnhancedDelegation()">Save Delegation</button>
-        </div>
-    </div>
-</div>
-
-<!-- Transfer History Modal -->
-<div id="transferHistoryModal" class="modal-overlay">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 id="transferHistoryTitle">Patient Transfer History</h3>
-        </div>
-        <div class="modal-body">
-            <div id="transferHistoryContent">
-                <!-- Transfer history will be populated here -->
+              </div>
+              <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getStatusColor(member.status)}`}>
+                {member.status}
+              </span>
             </div>
             
-            <h4>Record New Transfer</h4>
-            <form id="transferForm">
-                <div class="form-group">
-                    <label class="form-label">From Location</label>
-                    <input type="text" id="transferFromLocation" class="form-control" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">To Location *</label>
-                    <select id="transferToLocation" class="form-control" required>
-                        <option value="">Select Destination</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Transfer Date *</label>
-                    <input type="date" id="transferDate" class="form-control" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Reason for Transfer *</label>
-                    <select id="transferReason" class="form-control" required>
-                        <option value="">Select Reason</option>
-                        <option value="Care level increase">Care level increase</option>
-                        <option value="Care level decrease">Care level decrease</option>
-                        <option value="Room preference">Room preference</option>
-                        <option value="Medical needs">Medical needs</option>
-                        <option value="Behavioral needs">Behavioral needs</option>
-                        <option value="Family request">Family request</option>
-                        <option value="Bed availability">Bed availability</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Additional Notes</label>
-                    <textarea id="transferNotes" class="form-control" rows="2" placeholder="Additional transfer details..."></textarea>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn-secondary" onclick="closeTransferModal()">Cancel</button>
-            <button type="button" class="btn-primary" onclick="saveTransfer()">Record Transfer</button>
-        </div>
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-gray-700">Current Care Load</span>
+                <span className="text-sm text-gray-600">{member.workload}/{member.maxCapacity}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div 
+                  className={`h-3 rounded-full transition-all duration-300 ${
+                    (member.workload / member.maxCapacity) > 0.8 
+                      ? 'bg-red-500' 
+                      : (member.workload / member.maxCapacity) > 0.6 
+                        ? 'bg-yellow-500' 
+                        : 'bg-emerald-500'
+                  }`}
+                  style={{ width: `${(member.workload / member.maxCapacity) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-sm font-medium text-gray-700 mb-3">Specializations</p>
+              <div className="flex flex-wrap gap-2">
+                {member.specialties.map((specialty) => (
+                  <span key={specialty} className="px-3 py-1 text-xs bg-teal-100 text-teal-800 rounded-full border border-teal-200">
+                    {specialty}
+                  </span>
+                ))}
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-sm font-medium text-gray-700 mb-3">Active Certifications</p>
+              <div className="grid grid-cols-2 gap-2">
+                {member.certifications.slice(0, 4).map((cert) => (
+                  <span key={cert} className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-lg border border-blue-200 text-center">
+                    {cert}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+              <div className="text-sm text-gray-500">
+                {member.yearsExperience} years experience
+              </div>
+              <button className="text-teal-600 hover:text-teal-700 text-sm font-medium hover:bg-teal-50 px-3 py-1 rounded-lg transition-all duration-200">
+                View Profile
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
-</div>
+  );
 
-<style>
-/* Additional styles for enhanced modals */
-.checkbox-group {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 10px;
-    margin: 10px 0;
-}
+  const renderContent = () => {
+    switch(activeTab) {
+      case 'dashboard': return <DashboardView />;
+      case 'delegations': return <DelegationsView />;
+      case 'staff': return <StaffView />;
+      default: 
+        return (
+          <div className="bg-white rounded-2xl p-12 shadow-sm border border-gray-100 text-center">
+            <div className="w-16 h-16 bg-teal-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Settings className="w-8 h-8 text-teal-600" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Feature In Development</h3>
+            <p className="text-gray-600">This section is being developed to provide comprehensive care management tools.</p>
+          </div>
+        );
+    }
+  };
 
-.checkbox-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px;
-    border: 1px solid #e1e1e1;
-    border-radius: 4px;
-    background: #f8f9fa;
-}
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <Sidebar />
 
-.checkbox-item input[type="checkbox"] {
-    margin: 0;
-}
-
-.certification-entry {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin: 5px 0;
-    padding: 10px;
-    border: 1px solid #e1e1e1;
-    border-radius: 4px;
-    background: #f8f9fa;
-}
-
-.certification-entry input,
-.certification-entry select {
-    flex: 1;
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-}
-
-.remove-btn {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-.status-badge {
-    padding: 2px 6px;
-    border-radius: 10px;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.transfer-history-item {
-    padding: 10px;
-    border: 1px solid #e1e1e1;
-    border-radius: 4px;
-    margin: 5px 0;
-    background: #f8f9fa;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 5px;
-}
-
-.action-btn {
-    padding: 2px 6px;
-    font-size: 11px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-}
-
-.edit-btn {
-    background: #007bff;
-    color: white;
-}
-
-.delete-btn {
-    background: #dc3545;
-    color: white;
-}
-
-.status-btn {
-    background: #28a745;
-    color: white;
-}
-
-.highlight-row {
-    animation: highlightFade 3s ease-in-out;
-}
-
-@keyframes highlightFade {
-    0% { background-color: #fff3cd; }
-    100% { background-color: transparent; }
-}
-</style>
-
-<script>
-// Enhanced CRUD Operations
-
-// Current editing state
-let currentEditingEmployee = null;
-let currentEditingPatient = null;
-let currentEditingDelegation = null;
-
-// Employee Management Functions
-function openEmployeeModal(employeeId = null) {
-    const modal = document.getElementById('employeeModal');
-    const title = document.getElementById('employeeModalTitle');
-    const deleteBtn = document.getElementById('deleteEmployeeBtn');
-    
-    // Populate location dropdown
-    populateEmployeeLocationDropdown();
-    populateAvailableLocations();
-    populateAuthorizedTasks();
-    
-    if (employeeId) {
-        // Edit mode
-        currentEditingEmployee = originalEmployeeData.find(e => e.id === employeeId);
-        title.textContent = 'Edit Employee Profile';
-        deleteBtn.style.display = 'inline-block';
-        
-        if (currentEditingEmployee) {
-            document.getElementById('employeeId').value = currentEditingEmployee.id;
-            document.getElementById('employeeId').disabled = true;
-            document.getElementById('employeeName').value = currentEditingEmployee.name;
-            document.getElementById('employeePrimaryLocation').value = currentEditingEmployee.primaryLocation;
-            document.getElementById('employeeStatus').value = currentEditingEmployee.status;
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Header */}
+        <header className="bg-white border-b border-gray-200 px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <div className="text-sm text-gray-500">
+                {new Date().toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </div>
+            </div>
             
-            // Set available locations
-            updateAvailableLocationsChecked(currentEditingEmployee.availableLocations || []);
-            
-            // Set certifications
-            populateEmployeeCertifications(currentEditingEmployee.certifications || []);
-            
-            // Set authorized tasks
-            updateAuthorizedTasksChecked(currentEditingEmployee.authorizedTasks || []);
-        }
-    } else {
-        // Create mode
-        currentEditingEmployee = null;
-        title.textContent = 'Add New Employee';
-        deleteBtn.style.display = 'none';
-        document.getElementById('employeeForm').reset();
-        document.getElementById('employeeId').disabled = false;
-        clearCertificationsContainer();
-        updateAvailableLocationsChecked([]);
-        updateAuthorizedTasksChecked([]);
-    }
-    
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
+            <div className="flex items-center gap-4">
+              <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                <Bell className="w-5 h-5" />
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+              </button>
+              <div className="flex items-center gap-3">
+                <img 
+                  src="/api/placeholder/32/32" 
+                  alt="User"
+                  className="w-8 h-8 rounded-full border-2 border-gray-200"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900">Dr. Admin User</span>
+                  <p className="text-xs text-gray-500">Care Administrator</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
 
-function populateEmployeeLocationDropdown() {
-    const select = document.getElementById('employeePrimaryLocation');
-    select.innerHTML = '<option value="">Select Primary Location</option>';
-    
-    config.locations.forEach(location => {
-        const option = document.createElement('option');
-        option.value = location;
-        option.textContent = location;
-        select.appendChild(option);
-    });
-}
+        {/* Page Content */}
+        <main className="flex-1 p-8">
+          {renderContent()}
+        </main>
+      </div>
 
-function populateAvailableLocations() {
-    const container = document.getElementById('availableLocationsContainer');
-    container.innerHTML = '';
-    
-    const checkboxGroup = document.createElement('div');
-    checkboxGroup.className = 'checkbox-group';
-    
-    config.locations.forEach(location => {
-        const checkboxItem = document.createElement('div');
-        checkboxItem.className = 'checkbox-item';
-        checkboxItem.innerHTML = `
-            <input type="checkbox" id="loc_${location.replace(/\s+/g, '_')}" value="${location}">
-            <label for="loc_${location.replace(/\s+/g, '_')}">${location}</label>
-        `;
-        checkboxGroup.appendChild(checkboxItem);
-    });
-    
-    container.appendChild(checkboxGroup);
-}
+      {/* Modals */}
+      <CarePlanModal />
+    </div>
+  );
+};
 
-function updateAvailableLocationsChecked(availableLocations) {
-    config.locations.forEach(location => {
-        const checkbox = document.getElementById(`loc_${location.replace(/\s+/g, '_')}`);
-        if (checkbox) {
-            checkbox.checked = availableLocations.includes(location);
-        }
-    });
-}
-
-function populateAuthorizedTasks() {
-    const container = document.getElementById('authorizedTasksContainer');
-    container.innerHTML = '';
-    
-    const checkboxGroup = document.createElement('div');
-    checkboxGroup.className = 'checkbox-group';
-    
-    config.tasks.forEach(task => {
-        const checkboxItem = document.createElement('div');
-        checkboxItem.className = 'checkbox-item';
-        checkboxItem.innerHTML = `
-            <input type="checkbox" id="task_${task.name.replace(/\s+/g, '_')}" value="${task.name}">
-            <label for="task_${task.name.replace(/\s+/g, '_')}">${task.name}</label>
-            <small style="color: #666; margin-left: 5px;">(Requires: ${task.requiresCert})</small>
-        `;
-        checkboxGroup.appendChild(checkboxItem);
-    });
-    
-    container.appendChild(checkboxGroup);
-}
-
-function updateAuthorizedTasksChecked(authorizedTasks) {
-    config.tasks.forEach(task => {
-        const checkbox = document.getElementById(`task_${task.name.replace(/\s+/g, '_')}`);
-        if (checkbox) {
-            checkbox.checked = authorizedTasks.includes(task.name);
-        }
-    });
-}
-
-function populateEmployeeCertifications(certifications) {
-    clearCertificationsContainer();
-    certifications.forEach(cert => {
-        addCertificationEntry(cert);
-    });
-    
-    // Add one empty entry if none exist
-    if (certifications.length === 0) {
-        addCertificationEntry();
-    }
-}
-
-function clearCertificationsContainer() {
-    document.getElementById('certificationsContainer').innerHTML = '';
-}
-
-function addCertification() {
-    addCertificationEntry();
-}
-
-function addCertificationEntry(cert = null) {
-    const container = document.getElementById('certificationsContainer');
-    const entryDiv = document.createElement('div');
-    entryDiv.className = 'certification-entry';
-    
-    const certId = 'cert_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    
-    entryDiv.innerHTML = `
-        <select name="certName" required>
-            <option value="">Select Certification</option>
-            ${config.certifications.map(certName => 
-                `<option value="${certName}" ${cert && cert.name === certName ? 'selected' : ''}>${certName}</option>`
-            ).join('')}
-        </select>
-        <input type="date" name="certExpiry" placeholder="Expiry Date" value="${cert ? cert.expiry : ''}" required>
-        <select name="certStatus">
-            <option value="valid" ${cert && cert.status === 'valid' ? 'selected' : ''}>Valid</option>
-            <option value="expiring" ${cert && cert.status === 'expiring' ? 'selected' : ''}>Expiring Soon</option>
-            <option value="expired" ${cert && cert.status === 'expired' ? 'selected' : ''}>Expired</option>
-        </select>
-        <button type="button" class="remove-btn" onclick="removeCertificationEntry(this)">Remove</button>
-    `;
-    
-    container.appendChild(entryDiv);
-}
-
-function removeCertificationEntry(button) {
-    button.parentElement.remove();
-}
-
-function saveEmployee() {
-    const formData = {
-        id: document.getElementById('employeeId').value,
-        name: document.getElementById('employeeName').value,
-        primaryLocation: document.getElementById('employeePrimaryLocation').value,
-        status: document.getElementById('employeeStatus').value
-    };
-    
-    // Validate required fields
-    if (!formData.id || !formData.name || !formData.primaryLocation) {
-        showEmployeeValidationError(['Please fill in all required fields']);
-        return;
-    }
-    
-    // Get available locations
-    const availableLocations = [];
-    config.locations.forEach(location => {
-        const checkbox = document.getElementById(`loc_${location.replace(/\s+/g, '_')}`);
-        if (checkbox && checkbox.checked) {
-            availableLocations.push(location);
-        }
-    });
-    
-    // Get authorized tasks
-    const authorizedTasks = [];
-    config.tasks.forEach(task => {
-        const checkbox = document.getElementById(`task_${task.name.replace(/\s+/g, '_')}`);
-        if (checkbox && checkbox.checked) {
-            authorizedTasks.push(task.name);
-        }
-    });
-    
-    // Get certifications
-    const certifications = [];
-    const certEntries = document.querySelectorAll('.certification-entry');
-    certEntries.forEach(entry => {
-        const name = entry.querySelector('select[name="certName"]').value;
-        const expiry = entry.querySelector('input[name="certExpiry"]').value;
-        const status = entry.querySelector('select[name="certStatus"]').value;
-        
-        if (name && expiry) {
-            certifications.push({ name, expiry, status });
-        }
-    });
-    
-    const employeeData = {
-        ...formData,
-        availableLocations,
-        authorizedTasks,
-        certifications,
-        lastUpdated: new Date().toISOString().split('T')[0]
-    };
-    
-    if (currentEditingEmployee) {
-        // Update existing employee
-        const index = originalEmployeeData.findIndex(e => e.id === currentEditingEmployee.id);
-        if (index >= 0) {
-            originalEmployeeData[index] = employeeData;
-            
-            // Update filtered data if it contains this employee
-            const filteredIndex = window.employeeData.findIndex(e => e.id === currentEditingEmployee.id);
-            if (filteredIndex >= 0) {
-                window.employeeData[filteredIndex] = employeeData;
-            }
-        }
-    } else {
-        // Add new employee
-        originalEmployeeData.push(employeeData);
-        window.employeeData.push(employeeData);
-    }
-    
-    dataManager.saveData();
-    renderEmployeeProfiles();
-    closeEmployeeModal();
-    dataManager.showSaveNotification();
-}
-
-function deleteEmployee() {
-    if (!currentEditingEmployee) return;
-    
-    if (confirm(`Are you sure you want to delete employee ${currentEditingEmployee.name}? This will also remove all their delegations.`)) {
-        // Remove from original data
-        const index = originalEmployeeData.findIndex(e => e.id === currentEditingEmployee.id);
-        if (index >= 0) {
-            originalEmployeeData.splice(index, 1);
-        }
-        
-        // Remove from filtered data
-        const filteredIndex = window.employeeData.findIndex(e => e.id === currentEditingEmployee.id);
-        if (filteredIndex >= 0) {
-            window.employeeData.splice(filteredIndex, 1);
-        }
-        
-        // Remove related delegations
-        originalDelegationData = originalDelegationData.filter(d => d.employeeId !== currentEditingEmployee.id);
-        window.delegationData = window.delegationData.filter(d => d.employeeId !== currentEditingEmployee.id);
-        
-        dataManager.saveData();
-        renderEmployeeProfiles();
-        closeEmployeeModal();
-        dataManager.showSaveNotification();
-    }
-}
-
-function showEmployeeValidationError(errors) {
-    const errorDiv = document.getElementById('employeeValidationErrors');
-    errorDiv.innerHTML = `
-        <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 10px; border-radius: 4px; margin: 10px 0;">
-            <strong>Please fix the following issues:</strong><br>
-            ${errors.map(error => `• ${error}`).join('<br>')}
-        </div>
-    `;
-}
-
-function closeEmployeeModal() {
-    document.getElementById('employeeModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-    document.getElementById('employeeValidationErrors').innerHTML = '';
-    currentEditingEmployee = null;
-}
-
-// Patient Management Functions
-function openPatientModal(patientId = null) {
-    const modal = document.getElementById('patientModal');
-    const title = document.getElementById('patientModalTitle');
-    const deleteBtn = document.getElementById('deletePatientBtn');
-    const transferBtn = document.getElementById('transferPatientBtn');
-    
-    // Populate location dropdown
-    populatePatientLocationDropdown();
-    
-    if (patientId) {
-        // Edit mode
-        currentEditingPatient = originalPatientData.find(p => p.id === patientId);
-        title.textContent = 'Edit Patient Information';
-        deleteBtn.style.display = 'inline-block';
-        transferBtn.style.display = 'inline-block';
-        
-        if (currentEditingPatient) {
-            document.getElementById('patientId').value = currentEditingPatient.id;
-            document.getElementById('patientId').disabled = true;
-            document.getElementById('patientName').value = currentEditingPatient.name;
-            document.getElementById('patientCurrentLocation').value = currentEditingPatient.currentLocation;
-            document.getElementById('patientRoom').value = currentEditingPatient.room || '';
-            document.getElementById('patientAdmissionDate').value = currentEditingPatient.admissionDate || '';
-            document.getElementById('patientCareLevel').value = currentEditingPatient.careLevel || '';
-            document.getElementById('patientStatus').value = currentEditingPatient.status || 'Current Resident';
-        }
-    } else {
-        // Create mode
-        currentEditingPatient = null;
-        title.textContent = 'Add New Patient';
-        deleteBtn.style.display = 'none';
-        transferBtn.style.display = 'none';
-        document.getElementById('patientForm').reset();
-        document.getElementById('patientId').disabled = false;
-        document.getElementById('patientAdmissionDate').value = new Date().toISOString().split('T')[0];
-        document.getElementById('patientStatus').value = 'Current Resident';
-    }
-    
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-function populatePatientLocationDropdown() {
-    const select = document.getElementById('patientCurrentLocation');
-    select.innerHTML = '<option value="">Select Current Location</option>';
-    
-    config.locations.forEach(location => {
-        const option = document.createElement('option');
-        option.value = location;
-        option.textContent = location;
-        select.appendChild(option);
-    });
-}
-
-function savePatient() {
-    const formData = {
-        id: document.getElementById('patientId').value,
-        name: document.getElementById('patientName').value,
-        currentLocation: document.getElementById('patientCurrentLocation').value,
-        room: document.getElementById('patientRoom').value,
-        admissionDate: document.getElementById('patientAdmissionDate').value,
-        careLevel: document.getElementById('patientCareLevel').value,
-        status: document.getElementById('patientStatus').value
-    };
-    
-    // Validate required fields
-    if (!formData.id || !formData.name || !formData.currentLocation) {
-        showPatientValidationError(['Please fill in all required fields']);
-        return;
-    }
-    
-    const patientData = {
-        ...formData,
-        lastTransfer: currentEditingPatient ? currentEditingPatient.lastTransfer : null,
-        activeTasks: currentEditingPatient ? currentEditingPatient.activeTasks : 0,
-        transferHistory: currentEditingPatient ? currentEditingPatient.transferHistory : []
-    };
-    
-    if (currentEditingPatient) {
-        // Update existing patient
-        const index = originalPatientData.findIndex(p => p.id === currentEditingPatient.id);
-        if (index >= 0) {
-            // Check if location changed
-            if (originalPatientData[index].currentLocation !== formData.currentLocation) {
-                // Record automatic transfer
-                const transfer = {
-                    from: originalPatientData[index].currentLocation,
-                    to: formData.currentLocation,
-                    date: new Date().toISOString().split('T')[0],
-                    reason: 'Location updated via patient edit'
-                };
-                
-                patientData.transferHistory = [...(originalPatientData[index].transferHistory || []), transfer];
-                patientData.lastTransfer = transfer.date;
-            }
-            
-            originalPatientData[index] = patientData;
-            
-            // Update filtered data if it contains this patient
-            const filteredIndex = window.patientData.findIndex(p => p.id === currentEditingPatient.id);
-            if (filteredIndex >= 0) {
-                window.patientData[filteredIndex] = patientData;
-            }
-        }
-    } else {
-        // Add new patient
-        originalPatientData.push(patientData);
-        window.patientData.push(patientData);
-    }
-    
-    dataManager.saveData();
-    renderPatientTracking();
-    closePatientModal();
-    dataManager.showSaveNotification();
-}
-
-function deletePatient() {
-    if (!currentEditingPatient) return;
-    
-    if (confirm(`Are you sure you want to archive patient ${currentEditingPatient.name}? This will also remove all their delegations.`)) {
-        // Update status to archived instead of deleting
-        const index = originalPatientData.findIndex(p => p.id === currentEditingPatient.id);
-        if (index >= 0) {
-            originalPatientData[index].status = 'Archived';
-        }
-        
-        // Update filtered data
-        const filteredIndex = window.patientData.findIndex(p => p.id === currentEditingPatient.id);
-        if (filteredIndex >= 0) {
-            window.patientData[filteredIndex].status = 'Archived';
-        }
-        
-        // Archive related delegations
-        originalDelegationData.forEach(d => {
-            if (d.patientId === currentEditingPatient.id) {
-                d.status = 'Cancelled';
-                d.complianceStatus = 'Archived';
-            }
-        });
-        
-        dataManager.saveData();
-        renderPatientTracking();
-        closePatientModal();
-        dataManager.showSaveNotification();
-    }
-}
-
-function recordPatientTransfer() {
-    if (!currentEditingPatient) return;
-    openTransferHistoryModal(currentEditingPatient.id);
-}
-
-function showPatientValidationError(errors) {
-    const errorDiv = document.getElementById('patientValidationErrors');
-    errorDiv.innerHTML = `
-        <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 10px; border-radius: 4px; margin: 10px 0;">
-            <strong>Please fix the following issues:</strong><br>
-            ${errors.map(error => `• ${error}`).join('<br>')}
-        </div>
-    `;
-}
-
-function closePatientModal() {
-    document.getElementById('patientModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-    document.getElementById('patientValidationErrors').innerHTML = '';
-    currentEditingPatient = null;
-}
-
-// Enhanced Delegation Management
-function openEnhancedDelegationModal(delegationId = null) {
-    const modal = document.getElementById('enhancedDelegationModal');
-    const title = document.getElementById('enhancedModalTitle');
-    const deleteBtn = document.getElementById('deleteDelegationBtn');
-    const duplicateBtn = document.getElementById('duplicateBtn');
-    
-    populateEnhancedPatientDropdown();
-    populateEnhancedTaskDropdown();
-    populateEnhancedNurseDropdown();
-    
-    if (delegationId) {
-        // Edit mode
-        currentEditingDelegation = originalDelegationData.find(d => d.id === delegationId);
-        title.textContent = 'Edit Delegation';
-        deleteBtn.style.display = 'inline-block';
-        duplicateBtn.style.display = 'inline-block';
-        
-        if (currentEditingDelegation) {
-            document.getElementById('enhancedModalPatientId').value = currentEditingDelegation.patientId;
-            document.getElementById('enhancedModalTask').value = currentEditingDelegation.task;
-            document.getElementById('enhancedModalEmployeeId').value = currentEditingDelegation.employeeId;
-            document.getElementById('enhancedModalDate').value = currentEditingDelegation.date;
-            document.getElementById('enhancedModalShift').value = currentEditingDelegation.shift;
-            document.getElementById('enhancedModalDelegator').value = currentEditingDelegation.delegator;
-            document.getElementById('enhancedModalPriority').value = currentEditingDelegation.priority || 'Medium';
-            document.getElementById('enhancedModalStatus').value = currentEditingDelegation.status || 'Pending';
-            document.getElementById('delegationNotes').value = currentEditingDelegation.notes || '';
-            
-            updateEnhancedAvailableNurses();
-        }
-    } else {
-        // Create mode
-        currentEditingDelegation = null;
-        title.textContent = 'Create New Delegation';
-        deleteBtn.style.display = 'none';
-        duplicateBtn.style.display = 'none';
-        document.getElementById('enhancedDelegationForm').reset();
-        document.getElementById('enhancedModalDate').value = new Date().toISOString().split('T')[0];
-        document.getElementById('enhancedModalPriority').value = 'Medium';
-        document.getElementById('enhancedModalStatus').value = 'Pending';
-    }
-    
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-function populateEnhancedPatientDropdown() {
-    const select = document.getElementById('enhancedModalPatientId');
-    select.innerHTML = '<option value="">Select Patient</option>';
-    
-    originalPatientData.filter(p => p.status === 'Current Resident').forEach(patient => {
-        const option = document.createElement('option');
-        option.value = patient.id;
-        option.textContent = `${patient.name} - ${patient.currentLocation} - ${patient.room}`;
-        select.appendChild(option);
-    });
-}
-
-function populateEnhancedTaskDropdown() {
-    const select = document.getElementById('enhancedModalTask');
-    select.innerHTML = '<option value="">Select Task</option>';
-    
-    config.tasks.forEach(task => {
-        const option = document.createElement('option');
-        option.value = task.name;
-        option.textContent = `${task.name} (Requires: ${task.requiresCert})`;
-        select.appendChild(option);
-    });
-}
-
-function populateEnhancedNurseDropdown(taskName = null) {
-    const select = document.getElementById('enhancedModalEmployeeId');
-    select.innerHTML = '<option value="">Select Nurse</option>';
-    
-    let availableEmployees = originalEmployeeData.filter(e => e.status === 'Active');
-    
-    if (taskName) {
-        const task = config.tasks.find(t => t.name === taskName);
-        if (task) {
-            availableEmployees = availableEmployees.filter(employee => 
-                employee.certifications && employee.certifications.some(cert => 
-                    cert.name === task.requiresCert && cert.status === 'valid'
-                ) && employee.authorizedTasks && employee.authorizedTasks.includes(taskName)
-            );
-        }
-    }
-    
-    availableEmployees.forEach(employee => {
-        const option = document.createElement('option');
-        option.value = employee.id;
-        
-        const isQualified = taskName ? 
-            employee.certifications && employee.certifications.some(cert => 
-                cert.name === config.tasks.find(t => t.name === taskName)?.requiresCert && 
-                cert.status === 'valid'
-            ) && employee.authorizedTasks && employee.authorizedTasks.includes(taskName) : true;
-        
-        const qualStatus = isQualified ? '✅' : '❌';
-        option.textContent = `${qualStatus} ${employee.name} - ${employee.primaryLocation}`;
-        select.appendChild(option);
-    });
-}
-
-function updateEnhancedAvailableNurses() {
-    const taskName = document.getElementById('enhancedModalTask').value;
-    populateEnhancedNurseDropdown(taskName);
-}
-
-function showStatusReasonField() {
-    const status = document.getElementById('enhancedModalStatus').value;
-    const reasonGroup = document.getElementById('statusReasonGroup');
-    
-    if (status === 'Completed' || status === 'Cancelled' || status === 'Reassigned') {
-        reasonGroup.style.display = 'block';
-    } else {
-        reasonGroup.style.display = 'none';
-    }
-}
-
-function saveEnhancedDelegation() {
-    const formData = {
-        patientId: document.getElementById('enhancedModalPatientId').value,
-        task: document.getElementById('enhancedModalTask').value,
-        employeeId: document.getElementById('enhancedModalEmployeeId').value,
-        date: document.getElementById('enhancedModalDate').value,
-        shift: document.getElementById('enhancedModalShift').value,
-        delegator: document.getElementById('enhancedModalDelegator').value,
-        priority: document.getElementById('enhancedModalPriority').value,
-        status: document.getElementById('enhancedModalStatus').value,
-        notes: document.getElementById('delegationNotes').value,
-        statusReason: document.getElementById('statusReason').value
-    };
-    
-    // Validate using existing validator
-    const validation = FormValidator.validateDelegation(formData);
-    if (!validation.isValid) {
-        showEnhancedValidationError(validation.errors);
-        return;
-    }
-    
-    const patient = originalPatientData.find(p => p.id === formData.patientId);
-    const employee = originalEmployeeData.find(e => e.id === formData.employeeId);
-    
-    if (!patient || !employee) {
-        showEnhancedValidationError(['Selected patient or employee not found']);
-        return;
-    }
-    
-    const delegationData = {
-        id: currentEditingDelegation ? currentEditingDelegation.id : 'DEL' + String(originalDelegationData.length + 1).padStart(3, '0'),
-        patientId: formData.patientId,
-        patientName: patient.name,
-        currentLocation: patient.currentLocation,
-        task: formData.task,
-        assignedNurse: employee.name,
-        employeeId: formData.employeeId,
-        qualificationCheck: 'Valid',
-        date: formData.date,
-        shift: formData.shift,
-        delegator: formData.delegator,
-        priority: formData.priority,
-        status: formData.status,
-        notes: formData.notes,
-        statusReason: formData.statusReason,
-        locationMatch: employee.availableLocations && employee.availableLocations.includes(patient.currentLocation) ? 'Valid' : 'Mismatch',
-        complianceStatus: 'Compliant',
-        lastUpdated: new Date().toISOString()
-    };
-    
-    if (currentEditingDelegation) {
-        // Update existing delegation
-        const index = originalDelegationData.findIndex(d => d.id === currentEditingDelegation.id);
-        if (index >= 0) {
-            originalDelegationData[index] = delegationData;
-            
-            // Update filtered data if it contains this delegation
-            const filteredIndex = window.delegationData.findIndex(d => d.id === currentEditingDelegation.id);
-            if (filteredIndex >= 0) {
-                window.delegationData[filteredIndex] = delegationData;
-            }
-        }
-    } else {
-        // Add new delegation
-        originalDelegationData.push(delegationData);
-        window.delegationData.push(delegationData);
-    }
-    
-    dataManager.saveData();
-    renderDelegationEntry();
-    closeEnhancedModal();
-    dataManager.showSaveNotification();
-}
-
-function duplicateDelegation() {
-    if (!currentEditingDelegation) return;
-    
-    // Close current modal and open new one with pre-filled data
-    closeEnhancedModal();
-    
-    setTimeout(() => {
-        openEnhancedDelegationModal();
-        
-        // Fill in data from current delegation
-        document.getElementById('enhancedModalPatientId').value = currentEditingDelegation.patientId;
-        document.getElementById('enhancedModalTask').value = currentEditingDelegation.task;
-        document.getElementById('enhancedModalEmployeeId').value = currentEditingDelegation.employeeId;
-        document.getElementById('enhancedModalDate').value = new Date().toISOString().split('T')[0]; // Today's date
-        document.getElementById('enhancedModalShift').value = currentEditingDelegation.shift;
-        document.getElementById('enhancedModalDelegator').value = currentEditingDelegation.delegator;
-        document.getElementById('enhancedModalPriority').value = currentEditingDelegation.priority;
-        document.getElementById('enhancedModalStatus').value = 'Pending'; // Reset status
-        document.getElementById('delegationNotes').value = 'Duplicated from ' + currentEditingDelegation.id;
-        
-        updateEnhancedAvailableNurses();
-    }, 100);
-}
-
-function deleteDelegation() {
-    if (!currentEditingDelegation) return;
-    
-    if (confirm(`Are you sure you want to delete delegation ${currentEditingDelegation.id}?`)) {
-        // Remove from original data
-        const index = originalDelegationData.findIndex(d => d.id === currentEditingDelegation.id);
-        if (index >= 0) {
-            originalDelegationData.splice(index, 1);
-        }
-        
-        // Remove from filtered data
-        const filteredIndex = window.delegationData.findIndex(d => d.id === currentEditingDelegation.id);
-        if (filteredIndex >= 0) {
-            window.delegationData.splice(filteredIndex, 1);
-        }
-        
-        dataManager.saveData();
-        renderDelegationEntry();
-        closeEnhancedModal();
-        dataManager.showSaveNotification();
-    }
-}
-
-function showEnhancedValidationError(errors) {
-    const errorDiv = document.getElementById('enhancedModalValidationErrors');
-    errorDiv.innerHTML = `
-        <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 10px; border-radius: 4px; margin: 10px 0;">
-            <strong>Please fix the following issues:</strong><br>
-            ${errors.map(error => `• ${error}`).join('<br>')}
-        </div>
-    `;
-}
-
-function closeEnhancedModal() {
-    document.getElementById('enhancedDelegationModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-    document.getElementById('enhancedModalValidationErrors').innerHTML = '';
-    currentEditingDelegation = null;
-}
-
-// Transfer History Management
-function openTransferHistoryModal(patientId) {
-    const modal = document.getElementById('transferHistoryModal');
-    const patient = originalPatientData.find(p => p.id === patientId);
-    
-    if (!patient) return;
-    
-    document.getElementById('transferHistoryTitle').textContent = `Transfer History - ${patient.name}`;
-    document.getElementById('transferFromLocation').value = patient.currentLocation;
-    document.getElementById('transferDate').value = new Date().toISOString().split('T')[0];
-    
-    // Populate transfer destinations
-    populateTransferDestinations(patient.currentLocation);
-    
-    // Display transfer history
-    displayTransferHistory(patient.transferHistory || []);
-    
-    currentEditingPatient = patient;
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-function populateTransferDestinations(currentLocation) {
-    const select = document.getElementById('transferToLocation');
-    select.innerHTML = '<option value="">Select Destination</option>';
-    
-    config.locations.forEach(location => {
-        if (location !== currentLocation) {
-            const option = document.createElement('option');
-            option.value = location;
-            option.textContent = location;
-            select.appendChild(option);
-        }
-    });
-}
-
-function displayTransferHistory(transferHistory) {
-    const container = document.getElementById('transferHistoryContent');
-    
-    if (transferHistory.length === 0) {
-        container.innerHTML = '<p style="color: #666; font-style: italic;">No transfer history available.</p>';
-        return;
-    }
-    
-    container.innerHTML = transferHistory.map(transfer => `
-        <div class="transfer-history-item">
-            <strong>${transfer.date}</strong>: ${transfer.from} → ${transfer.to}
-            <br><small style="color: #666;">Reason: ${transfer.reason}</small>
-            ${transfer.notes ? `<br><small style="color: #666;">Notes: ${transfer.notes}</small>` : ''}
-        </div>
-    `).join('');
-}
-
-function saveTransfer() {
-    const transferData = {
-        from: document.getElementById('transferFromLocation').value,
-        to: document.getElementById('transferToLocation').value,
-        date: document.getElementById('transferDate').value,
-        reason: document.getElementById('transferReason').value,
-        notes: document.getElementById('transferNotes').value
-    };
-    
-    if (!transferData.to || !transferData.date || !transferData.reason) {
-        alert('Please fill in all required fields');
-        return;
-    }
-    
-    if (!currentEditingPatient) return;
-    
-    // Update patient data
-    const patientIndex = originalPatientData.findIndex(p => p.id === currentEditingPatient.id);
-    if (patientIndex >= 0) {
-        originalPatientData[patientIndex].currentLocation = transferData.to;
-        originalPatientData[patientIndex].lastTransfer = transferData.date;
-        
-        if (!originalPatientData[patientIndex].transferHistory) {
-            originalPatientData[patientIndex].transferHistory = [];
-        }
-        originalPatientData[patientIndex].transferHistory.push(transferData);
-        
-        // Update filtered data
-        const filteredIndex = window.patientData.findIndex(p => p.id === currentEditingPatient.id);
-        if (filteredIndex >= 0) {
-            window.patientData[filteredIndex] = {...originalPatientData[patientIndex]};
-        }
-    }
-    
-    // Update related delegations
-    originalDelegationData.forEach(delegation => {
-        if (delegation.patientId === currentEditingPatient.id) {
-            delegation.currentLocation = transferData.to;
-            // Check if assigned nurse is still authorized for new location
-            const employee = originalEmployeeData.find(e => e.id === delegation.employeeId);
-            if (employee && employee.availableLocations) {
-                delegation.locationMatch = employee.availableLocations.includes(transferData.to) ? 'Valid' : 'Mismatch';
-                delegation.complianceStatus = delegation.locationMatch === 'Valid' ? 'Compliant' : 'Non-Compliant';
-            }
-        }
-    });
-    
-    dataManager.saveData();
-    renderPatientTracking();
-    closeTransferModal();
-    dataManager.showSaveNotification();
-}
-
-function closeTransferModal() {
-    document.getElementById('transferHistoryModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-    currentEditingPatient = null;
-}
-
-// Update existing functions to use enhanced modals
-function addNewEmployee() {
-    openEmployeeModal();
-}
-
-function addNewPatient() {
-    openPatientModal();
-}
-
-function addNewDelegation() {
-    openEnhancedDelegationModal();
-}
-
-function editDelegation(id) {
-    openEnhancedDelegationModal(id);
-}
-
-function recordTransfer() {
-    if (window.patientData.length === 0) {
-        alert('No patients available for transfer');
-        return;
-    }
-    
-    // Show list of patients to select for transfer
-    const patientId = prompt('Enter Patient ID to record transfer:');
-    if (patientId) {
-        const patient = originalPatientData.find(p => p.id === patientId);
-        if (patient) {
-            openTransferHistoryModal(patientId);
-        } else {
-            alert('Patient not found');
-        }
-    }
-}
-
-// Enhanced render functions with action buttons
-function renderEmployeeProfiles() {
-    const tbody = document.getElementById('employeeTableBody');
-    tbody.innerHTML = '';
-    
-    window.employeeData.forEach(employee => {
-        const tr = document.createElement('tr');
-        
-        const certificationBadges = employee.certifications.map(cert => 
-            `<span class="badge badge-${cert.status === 'valid' ? 'success' : cert.status === 'expiring' ? 'warning' : 'danger'}">${cert.name} (${cert.expiry})</span>`
-        ).join(' ');
-        
-        const locationBadges = employee.availableLocations.map(loc => 
-            `<span class="badge badge-info">${loc}</span>`
-        ).join(' ');
-        
-        tr.innerHTML = `
-            <td>${employee.id}</td>
-            <td><strong>${employee.name}</strong></td>
-            <td>${employee.primaryLocation}</td>
-            <td>${locationBadges}</td>
-            <td>${employee.authorizedTasks.join(', ')}</td>
-            <td>${certificationBadges}</td>
-            <td><span class="badge badge-${employee.status === 'Active' ? 'success' : 'warning'}">${employee.status}</span></td>
-            <td>${employee.lastUpdated}</td>
-            <td class="action-buttons">
-                <button class="action-btn edit-btn" onclick="openEmployeeModal('${employee.id}')" title="Edit Employee">✏️</button>
-            </td>
-        `;
-        
-        tbody.appendChild(tr);
-    });
-}
-
-function renderPatientTracking() {
-    const tbody = document.getElementById('patientTableBody');
-    tbody.innerHTML = '';
-    
-    window.patientData.forEach(patient => {
-        const tr = document.createElement('tr');
-        
-        tr.innerHTML = `
-            <td>${patient.id}</td>
-            <td><strong>${patient.name}</strong></td>
-            <td>${patient.currentLocation}</td>
-            <td>${patient.room}</td>
-            <td>${patient.admissionDate}</td>
-            <td>${patient.lastTransfer || 'N/A'}</td>
-            <td><span class="badge badge-info">${patient.careLevel}</span></td>
-            <td>${patient.activeTasks}</td>
-            <td><span class="badge badge-${patient.status === 'Current Resident' ? 'success' : 'warning'}">${patient.status}</span></td>
-            <td class="action-buttons">
-                <button class="action-btn edit-btn" onclick="openPatientModal('${patient.id}')" title="Edit Patient">✏️</button>
-                <button class="action-btn status-btn" onclick="openTransferHistoryModal('${patient.id}')" title="Transfer History">📍</button>
-            </td>
-        `;
-        
-        tbody.appendChild(tr);
-    });
-}
-
-function renderDelegationEntry() {
-    const tbody = document.getElementById('delegationTableBody');
-    tbody.innerHTML = '';
-    
-    window.delegationData.forEach(delegation => {
-        const tr = document.createElement('tr');
-        tr.className = getStatusClass(delegation.status);
-        
-        tr.innerHTML = `
-            <td><span class="badge badge-${delegation.status.toLowerCase().replace(' ', '-')}">${delegation.status}</span></td>
-            <td>${delegation.patientName} (${delegation.patientId})</td>
-            <td>${delegation.currentLocation}</td>
-            <td>${delegation.task}</td>
-            <td>${delegation.assignedNurse}</td>
-            <td><span class="badge badge-${delegation.qualificationCheck === 'Valid' ? 'success' : delegation.qualificationCheck === 'Expiring Soon' ? 'warning' : 'danger'}">${delegation.qualificationCheck}</span></td>
-            <td>${delegation.date}</td>
-            <td>${delegation.shift}</td>
-            <td>${delegation.priority}</td>
-            <td><span class="badge badge-${delegation.complianceStatus === 'Compliant' ? 'success' : delegation.complianceStatus === 'At Risk' ? 'warning' : 'danger'}">${delegation.complianceStatus}</span></td>
-            <td class="action-buttons">
-                <button class="action-btn edit-btn" onclick="editDelegation('${delegation.id}')" title="Edit Delegation">✏️</button>
-                <button class="action-btn status-btn" onclick="quickStatusUpdate('${delegation.id}')" title="Quick Status Update">⚡</button>
-            </td>
-        `;
-        
-        tbody.appendChild(tr);
-    });
-}
-
-// Quick status update function
-function quickStatusUpdate(delegationId) {
-    const delegation = originalDelegationData.find(d => d.id === delegationId);
-    if (!delegation) return;
-    
-    const newStatus = prompt(`Current status: ${delegation.status}\n\nEnter new status:\n- Pending\n- In Progress\n- Completed\n- Overdue\n- Reassigned\n- Cancelled`, delegation.status);
-    
-    if (newStatus && ['Pending', 'In Progress', 'Completed', 'Overdue', 'Reassigned', 'Cancelled'].includes(newStatus)) {
-        const index = originalDelegationData.findIndex(d => d.id === delegationId);
-        if (index >= 0) {
-            originalDelegationData[index].status = newStatus;
-            originalDelegationData[index].lastUpdated = new Date().toISOString();
-            
-            // Update filtered data
-            const filteredIndex = window.delegationData.findIndex(d => d.id === delegationId);
-            if (filteredIndex >= 0) {
-                window.delegationData[filteredIndex].status = newStatus;
-                window.delegationData[filteredIndex].lastUpdated = new Date().toISOString();
-            }
-        }
-        
-        dataManager.saveData();
-        renderDelegationEntry();
-        dataManager.showSaveNotification();
-    }
-}
-    </script>
-</body>
-</html>
+export default WellNestNursingSystem;
