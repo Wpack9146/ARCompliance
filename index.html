@@ -1099,1346 +1099,1392 @@
         </div>
     </div>
 
-    <!-- Enhanced Delegation Modal -->
-    <div id="delegationModal" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="modalTitle">Create New Delegation</h3>
-            </div>
-            <div class="modal-body">
-                <form id="delegationForm">
-                    <div class="form-group">
-                        <label class="form-label">Patient *</label>
-                        <select id="modalPatientId" class="form-control" required>
-                            <option value="">Select Patient</option>
-                        </select>
+  <!-- Add these enhanced modals and functionality to your existing index.html -->
+<!-- Insert these modals BEFORE the closing </body> tag, after the existing delegation modal -->
+
+<!-- Employee Management Modal -->
+<div id="employeeModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="employeeModalTitle">Edit Employee Profile</h3>
+        </div>
+        <div class="modal-body">
+            <form id="employeeForm">
+                <div class="form-group">
+                    <label class="form-label">Employee ID *</label>
+                    <input type="text" id="employeeId" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" id="employeeName" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Primary Location *</label>
+                    <select id="employeePrimaryLocation" class="form-control" required>
+                        <option value="">Select Primary Location</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Available Locations</label>
+                    <div id="availableLocationsContainer">
+                        <!-- Dynamic checkboxes will be inserted here -->
                     </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Task *</label>
-                        <select id="modalTask" class="form-control" required onchange="updateAvailableNurses()">
-                            <option value="">Select Task</option>
-                        </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Certifications</label>
+                    <div id="certificationsContainer">
+                        <!-- Dynamic certification entries will be inserted here -->
                     </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Assigned Nurse *</label>
-                        <select id="modalEmployeeId" class="form-control" required>
-                            <option value="">Select Nurse</option>
-                        </select>
+                    <button type="button" class="btn btn-info" onclick="addCertification()">+ Add Certification</button>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Authorized Tasks</label>
+                    <div id="authorizedTasksContainer">
+                        <!-- Dynamic task checkboxes will be inserted here -->
                     </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Date *</label>
-                        <input type="date" id="modalDate" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Shift *</label>
-                        <select id="modalShift" class="form-control" required>
-                            <option value="">Select Shift</option>
-                            <option value="Day">Day</option>
-                            <option value="Evening">Evening</option>
-                            <option value="Night">Night</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Delegator *</label>
-                        <input type="text" id="modalDelegator" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Priority</label>
-                        <select id="modalPriority" class="form-control">
-                            <option value="Low">Low</option>
-                            <option value="Medium" selected>Medium</option>
-                            <option value="High">High</option>
-                        </select>
-                    </div>
-                    
-                    <div id="modalValidationErrors"></div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
-                <button type="button" class="btn-primary" onclick="saveDelegation()">Save Delegation</button>
-            </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="employeeStatus" class="form-control">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="On Leave">On Leave</option>
+                        <option value="Training">Training</option>
+                    </select>
+                </div>
+                
+                <div id="employeeValidationErrors"></div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeEmployeeModal()">Cancel</button>
+            <button type="button" class="btn btn-danger" onclick="deleteEmployee()" id="deleteEmployeeBtn" style="display: none;">Delete Employee</button>
+            <button type="button" class="btn-primary" onclick="saveEmployee()">Save Employee</button>
         </div>
     </div>
+</div>
 
-    <script>
-        // Enhanced configuration with employee and patient data
-        const config = {
-            locations: [
-                'Sunset Manor - Wing A', 'Sunset Manor - Wing B',
-                'Golden Care - Memory Unit', 'Golden Care - Assisted Living',
-                'Riverside Lodge - Skilled Nursing', 'Riverside Lodge - Rehabilitation'
-            ],
-            tasks: [
-                { name: 'Medication Administration', requiresCert: 'RN License' },
-                { name: 'Vital Signs Check', requiresCert: 'LPN License' },
-                { name: 'Wound Care', requiresCert: 'Wound Care Certification' },
-                { name: 'Blood Sugar Test', requiresCert: 'Diabetes Management' },
-                { name: 'Physical Therapy', requiresCert: 'Physical Therapy License' },
-                { name: 'Insulin Injection', requiresCert: 'RN License' },
-                { name: 'Catheter Care', requiresCert: 'CNA Certification' },
-                { name: 'IV Management', requiresCert: 'IV Therapy Certification' }
-            ],
-            certifications: [
-                'RN License', 'LPN License', 'CNA Certification', 'Wound Care Certification',
-                'Diabetes Management', 'IV Therapy Certification', 'CPR/BLS', 'Physical Therapy License'
-            ],
-            shifts: ['Day', 'Evening', 'Night'],
-            statuses: ['Completed', 'Pending', 'Overdue', 'Reassigned'],
-            careLevels: ['Independent Living', 'Assisted Living', 'Memory Care', 'Skilled Nursing', 'Rehabilitation', 'Hospice Care']
-        };
+<!-- Patient Management Modal -->
+<div id="patientModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="patientModalTitle">Edit Patient Information</h3>
+        </div>
+        <div class="modal-body">
+            <form id="patientForm">
+                <div class="form-group">
+                    <label class="form-label">Patient ID *</label>
+                    <input type="text" id="patientId" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" id="patientName" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Current Location *</label>
+                    <select id="patientCurrentLocation" class="form-control" required>
+                        <option value="">Select Current Location</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Room/Unit</label>
+                    <input type="text" id="patientRoom" class="form-control" placeholder="e.g., Room 101A">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Admission Date</label>
+                    <input type="date" id="patientAdmissionDate" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Care Level</label>
+                    <select id="patientCareLevel" class="form-control">
+                        <option value="Independent Living">Independent Living</option>
+                        <option value="Assisted Living">Assisted Living</option>
+                        <option value="Memory Care">Memory Care</option>
+                        <option value="Skilled Nursing">Skilled Nursing</option>
+                        <option value="Rehabilitation">Rehabilitation</option>
+                        <option value="Hospice Care">Hospice Care</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="patientStatus" class="form-control">
+                        <option value="Current Resident">Current Resident</option>
+                        <option value="Transferred">Transferred</option>
+                        <option value="Discharged">Discharged</option>
+                        <option value="Hospital Stay">Hospital Stay</option>
+                    </select>
+                </div>
+                
+                <div id="patientValidationErrors"></div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closePatientModal()">Cancel</button>
+            <button type="button" class="btn btn-info" onclick="recordPatientTransfer()" id="transferPatientBtn">Record Transfer</button>
+            <button type="button" class="btn btn-danger" onclick="deletePatient()" id="deletePatientBtn" style="display: none;">Archive Patient</button>
+            <button type="button" class="btn-primary" onclick="savePatient()">Save Patient</button>
+        </div>
+    </div>
+</div>
 
-        // Employee data with certifications and qualifications
-        let employeeData = [
-            {
-                id: 'EMP001', name: 'Sarah Johnson', primaryLocation: 'Sunset Manor - Wing A',
-                availableLocations: ['Sunset Manor - Wing A', 'Sunset Manor - Wing B'],
-                certifications: [
-                    { name: 'RN License', expiry: '2026-03-15', status: 'valid' },
-                    { name: 'CPR/BLS', expiry: '2025-08-20', status: 'valid' },
-                    { name: 'IV Therapy Certification', expiry: '2025-06-10', status: 'expiring' }
-                ],
-                authorizedTasks: ['Medication Administration', 'Vital Signs Check', 'IV Management'],
-                status: 'Active', lastUpdated: '2025-05-20'
-            },
-            {
-                id: 'EMP002', name: 'Mike Chen', primaryLocation: 'Golden Care - Memory Unit',
-                availableLocations: ['Golden Care - Memory Unit', 'Golden Care - Assisted Living'],
-                certifications: [
-                    { name: 'LPN License', expiry: '2026-01-10', status: 'valid' },
-                    { name: 'CPR/BLS', expiry: '2025-12-05', status: 'valid' },
-                    { name: 'Diabetes Management', expiry: '2025-07-15', status: 'valid' }
-                ],
-                authorizedTasks: ['Vital Signs Check', 'Blood Sugar Test'],
-                status: 'Active', lastUpdated: '2025-05-18'
-            },
-            {
-                id: 'EMP003', name: 'Lisa Rodriguez', primaryLocation: 'Riverside Lodge - Skilled Nursing',
-                availableLocations: ['Riverside Lodge - Skilled Nursing', 'Riverside Lodge - Rehabilitation'],
-                certifications: [
-                    { name: 'RN License', expiry: '2025-09-30', status: 'valid' },
-                    { name: 'Wound Care Certification', expiry: '2025-05-28', status: 'expiring' },
-                    { name: 'CPR/BLS', expiry: '2026-02-14', status: 'valid' }
-                ],
-                authorizedTasks: ['Medication Administration', 'Wound Care', 'Vital Signs Check'],
-                status: 'Active', lastUpdated: '2025-05-22'
-            },
-            {
-                id: 'EMP004', name: 'Amanda Taylor', primaryLocation: 'Golden Care - Assisted Living',
-                availableLocations: ['Golden Care - Assisted Living', 'Golden Care - Memory Unit'],
-                certifications: [
-                    { name: 'CNA Certification', expiry: '2026-04-12', status: 'valid' },
-                    { name: 'CPR/BLS', expiry: '2025-11-08', status: 'valid' },
-                    { name: 'Diabetes Management', expiry: '2025-03-20', status: 'expired' }
-                ],
-                authorizedTasks: ['Vital Signs Check', 'Catheter Care'],
-                status: 'Active', lastUpdated: '2025-05-19'
-            },
-            {
-                id: 'EMP005', name: 'David Kim', primaryLocation: 'Sunset Manor - Wing B',
-                availableLocations: ['Sunset Manor - Wing A', 'Sunset Manor - Wing B'],
-                certifications: [
-                    { name: 'Physical Therapy License', expiry: '2026-08-05', status: 'valid' },
-                    { name: 'CPR/BLS', expiry: '2025-10-12', status: 'valid' }
-                ],
-                authorizedTasks: ['Physical Therapy'],
-                status: 'Active', lastUpdated: '2025-05-21'
-            },
-            {
-                id: 'EMP006', name: 'Jennifer Walsh', primaryLocation: 'Riverside Lodge - Rehabilitation',
-                availableLocations: ['Riverside Lodge - Skilled Nursing', 'Riverside Lodge - Rehabilitation'],
-                certifications: [
-                    { name: 'RN License', expiry: '2026-07-20', status: 'valid' },
-                    { name: 'Wound Care Certification', expiry: '2025-11-15', status: 'valid' },
-                    { name: 'CPR/BLS', expiry: '2025-09-30', status: 'valid' }
-                ],
-                authorizedTasks: ['Medication Administration', 'Wound Care', 'Vital Signs Check'],
-                status: 'Active', lastUpdated: '2025-05-23'
+<!-- Enhanced Delegation Modal (replaces existing one) -->
+<div id="enhancedDelegationModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="enhancedModalTitle">Manage Delegation</h3>
+        </div>
+        <div class="modal-body">
+            <form id="enhancedDelegationForm">
+                <div class="form-group">
+                    <label class="form-label">Patient *</label>
+                    <select id="enhancedModalPatientId" class="form-control" required>
+                        <option value="">Select Patient</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Task *</label>
+                    <select id="enhancedModalTask" class="form-control" required onchange="updateEnhancedAvailableNurses()">
+                        <option value="">Select Task</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Assigned Nurse *</label>
+                    <select id="enhancedModalEmployeeId" class="form-control" required>
+                        <option value="">Select Nurse</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Date *</label>
+                    <input type="date" id="enhancedModalDate" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Shift *</label>
+                    <select id="enhancedModalShift" class="form-control" required>
+                        <option value="">Select Shift</option>
+                        <option value="Day">Day</option>
+                        <option value="Evening">Evening</option>
+                        <option value="Night">Night</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Delegator *</label>
+                    <input type="text" id="enhancedModalDelegator" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select id="enhancedModalPriority" class="form-control">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="enhancedModalStatus" class="form-control" onchange="showStatusReasonField()">
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Overdue">Overdue</option>
+                        <option value="Reassigned">Reassigned</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="statusReasonGroup" style="display: none;">
+                    <label class="form-label">Reason for Status Change</label>
+                    <textarea id="statusReason" class="form-control" rows="2" placeholder="Explain reason for status change..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="delegationNotes" class="form-control" rows="3" placeholder="Additional notes or comments..."></textarea>
+                </div>
+                
+                <div id="enhancedModalValidationErrors"></div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeEnhancedModal()">Cancel</button>
+            <button type="button" class="btn btn-info" onclick="duplicateDelegation()" id="duplicateBtn" style="display: none;">Duplicate</button>
+            <button type="button" class="btn btn-danger" onclick="deleteDelegation()" id="deleteDelegationBtn" style="display: none;">Delete</button>
+            <button type="button" class="btn-primary" onclick="saveEnhancedDelegation()">Save Delegation</button>
+        </div>
+    </div>
+</div>
+
+<!-- Transfer History Modal -->
+<div id="transferHistoryModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="transferHistoryTitle">Patient Transfer History</h3>
+        </div>
+        <div class="modal-body">
+            <div id="transferHistoryContent">
+                <!-- Transfer history will be populated here -->
+            </div>
+            
+            <h4>Record New Transfer</h4>
+            <form id="transferForm">
+                <div class="form-group">
+                    <label class="form-label">From Location</label>
+                    <input type="text" id="transferFromLocation" class="form-control" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">To Location *</label>
+                    <select id="transferToLocation" class="form-control" required>
+                        <option value="">Select Destination</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Transfer Date *</label>
+                    <input type="date" id="transferDate" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Reason for Transfer *</label>
+                    <select id="transferReason" class="form-control" required>
+                        <option value="">Select Reason</option>
+                        <option value="Care level increase">Care level increase</option>
+                        <option value="Care level decrease">Care level decrease</option>
+                        <option value="Room preference">Room preference</option>
+                        <option value="Medical needs">Medical needs</option>
+                        <option value="Behavioral needs">Behavioral needs</option>
+                        <option value="Family request">Family request</option>
+                        <option value="Bed availability">Bed availability</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Additional Notes</label>
+                    <textarea id="transferNotes" class="form-control" rows="2" placeholder="Additional transfer details..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeTransferModal()">Cancel</button>
+            <button type="button" class="btn-primary" onclick="saveTransfer()">Record Transfer</button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Additional styles for enhanced modals */
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    background: #f8f9fa;
+}
+
+.checkbox-item input[type="checkbox"] {
+    margin: 0;
+}
+
+.certification-entry {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 5px 0;
+    padding: 10px;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    background: #f8f9fa;
+}
+
+.certification-entry input,
+.certification-entry select {
+    flex: 1;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.remove-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.status-badge {
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.transfer-history-item {
+    padding: 10px;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    margin: 5px 0;
+    background: #f8f9fa;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.action-btn {
+    padding: 2px 6px;
+    font-size: 11px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.edit-btn {
+    background: #007bff;
+    color: white;
+}
+
+.delete-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.status-btn {
+    background: #28a745;
+    color: white;
+}
+
+.highlight-row {
+    animation: highlightFade 3s ease-in-out;
+}
+
+@keyframes highlightFade {
+    0% { background-color: #fff3cd; }
+    100% { background-color: transparent; }
+}
+</style>
+
+<script>
+// Enhanced CRUD Operations
+
+// Current editing state
+let currentEditingEmployee = null;
+let currentEditingPatient = null;
+let currentEditingDelegation = null;
+
+// Employee Management Functions
+function openEmployeeModal(employeeId = null) {
+    const modal = document.getElementById('employeeModal');
+    const title = document.getElementById('employeeModalTitle');
+    const deleteBtn = document.getElementById('deleteEmployeeBtn');
+    
+    // Populate location dropdown
+    populateEmployeeLocationDropdown();
+    populateAvailableLocations();
+    populateAuthorizedTasks();
+    
+    if (employeeId) {
+        // Edit mode
+        currentEditingEmployee = originalEmployeeData.find(e => e.id === employeeId);
+        title.textContent = 'Edit Employee Profile';
+        deleteBtn.style.display = 'inline-block';
+        
+        if (currentEditingEmployee) {
+            document.getElementById('employeeId').value = currentEditingEmployee.id;
+            document.getElementById('employeeId').disabled = true;
+            document.getElementById('employeeName').value = currentEditingEmployee.name;
+            document.getElementById('employeePrimaryLocation').value = currentEditingEmployee.primaryLocation;
+            document.getElementById('employeeStatus').value = currentEditingEmployee.status;
+            
+            // Set available locations
+            updateAvailableLocationsChecked(currentEditingEmployee.availableLocations || []);
+            
+            // Set certifications
+            populateEmployeeCertifications(currentEditingEmployee.certifications || []);
+            
+            // Set authorized tasks
+            updateAuthorizedTasksChecked(currentEditingEmployee.authorizedTasks || []);
+        }
+    } else {
+        // Create mode
+        currentEditingEmployee = null;
+        title.textContent = 'Add New Employee';
+        deleteBtn.style.display = 'none';
+        document.getElementById('employeeForm').reset();
+        document.getElementById('employeeId').disabled = false;
+        clearCertificationsContainer();
+        updateAvailableLocationsChecked([]);
+        updateAuthorizedTasksChecked([]);
+    }
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function populateEmployeeLocationDropdown() {
+    const select = document.getElementById('employeePrimaryLocation');
+    select.innerHTML = '<option value="">Select Primary Location</option>';
+    
+    config.locations.forEach(location => {
+        const option = document.createElement('option');
+        option.value = location;
+        option.textContent = location;
+        select.appendChild(option);
+    });
+}
+
+function populateAvailableLocations() {
+    const container = document.getElementById('availableLocationsContainer');
+    container.innerHTML = '';
+    
+    const checkboxGroup = document.createElement('div');
+    checkboxGroup.className = 'checkbox-group';
+    
+    config.locations.forEach(location => {
+        const checkboxItem = document.createElement('div');
+        checkboxItem.className = 'checkbox-item';
+        checkboxItem.innerHTML = `
+            <input type="checkbox" id="loc_${location.replace(/\s+/g, '_')}" value="${location}">
+            <label for="loc_${location.replace(/\s+/g, '_')}">${location}</label>
+        `;
+        checkboxGroup.appendChild(checkboxItem);
+    });
+    
+    container.appendChild(checkboxGroup);
+}
+
+function updateAvailableLocationsChecked(availableLocations) {
+    config.locations.forEach(location => {
+        const checkbox = document.getElementById(`loc_${location.replace(/\s+/g, '_')}`);
+        if (checkbox) {
+            checkbox.checked = availableLocations.includes(location);
+        }
+    });
+}
+
+function populateAuthorizedTasks() {
+    const container = document.getElementById('authorizedTasksContainer');
+    container.innerHTML = '';
+    
+    const checkboxGroup = document.createElement('div');
+    checkboxGroup.className = 'checkbox-group';
+    
+    config.tasks.forEach(task => {
+        const checkboxItem = document.createElement('div');
+        checkboxItem.className = 'checkbox-item';
+        checkboxItem.innerHTML = `
+            <input type="checkbox" id="task_${task.name.replace(/\s+/g, '_')}" value="${task.name}">
+            <label for="task_${task.name.replace(/\s+/g, '_')}">${task.name}</label>
+            <small style="color: #666; margin-left: 5px;">(Requires: ${task.requiresCert})</small>
+        `;
+        checkboxGroup.appendChild(checkboxItem);
+    });
+    
+    container.appendChild(checkboxGroup);
+}
+
+function updateAuthorizedTasksChecked(authorizedTasks) {
+    config.tasks.forEach(task => {
+        const checkbox = document.getElementById(`task_${task.name.replace(/\s+/g, '_')}`);
+        if (checkbox) {
+            checkbox.checked = authorizedTasks.includes(task.name);
+        }
+    });
+}
+
+function populateEmployeeCertifications(certifications) {
+    clearCertificationsContainer();
+    certifications.forEach(cert => {
+        addCertificationEntry(cert);
+    });
+    
+    // Add one empty entry if none exist
+    if (certifications.length === 0) {
+        addCertificationEntry();
+    }
+}
+
+function clearCertificationsContainer() {
+    document.getElementById('certificationsContainer').innerHTML = '';
+}
+
+function addCertification() {
+    addCertificationEntry();
+}
+
+function addCertificationEntry(cert = null) {
+    const container = document.getElementById('certificationsContainer');
+    const entryDiv = document.createElement('div');
+    entryDiv.className = 'certification-entry';
+    
+    const certId = 'cert_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    entryDiv.innerHTML = `
+        <select name="certName" required>
+            <option value="">Select Certification</option>
+            ${config.certifications.map(certName => 
+                `<option value="${certName}" ${cert && cert.name === certName ? 'selected' : ''}>${certName}</option>`
+            ).join('')}
+        </select>
+        <input type="date" name="certExpiry" placeholder="Expiry Date" value="${cert ? cert.expiry : ''}" required>
+        <select name="certStatus">
+            <option value="valid" ${cert && cert.status === 'valid' ? 'selected' : ''}>Valid</option>
+            <option value="expiring" ${cert && cert.status === 'expiring' ? 'selected' : ''}>Expiring Soon</option>
+            <option value="expired" ${cert && cert.status === 'expired' ? 'selected' : ''}>Expired</option>
+        </select>
+        <button type="button" class="remove-btn" onclick="removeCertificationEntry(this)">Remove</button>
+    `;
+    
+    container.appendChild(entryDiv);
+}
+
+function removeCertificationEntry(button) {
+    button.parentElement.remove();
+}
+
+function saveEmployee() {
+    const formData = {
+        id: document.getElementById('employeeId').value,
+        name: document.getElementById('employeeName').value,
+        primaryLocation: document.getElementById('employeePrimaryLocation').value,
+        status: document.getElementById('employeeStatus').value
+    };
+    
+    // Validate required fields
+    if (!formData.id || !formData.name || !formData.primaryLocation) {
+        showEmployeeValidationError(['Please fill in all required fields']);
+        return;
+    }
+    
+    // Get available locations
+    const availableLocations = [];
+    config.locations.forEach(location => {
+        const checkbox = document.getElementById(`loc_${location.replace(/\s+/g, '_')}`);
+        if (checkbox && checkbox.checked) {
+            availableLocations.push(location);
+        }
+    });
+    
+    // Get authorized tasks
+    const authorizedTasks = [];
+    config.tasks.forEach(task => {
+        const checkbox = document.getElementById(`task_${task.name.replace(/\s+/g, '_')}`);
+        if (checkbox && checkbox.checked) {
+            authorizedTasks.push(task.name);
+        }
+    });
+    
+    // Get certifications
+    const certifications = [];
+    const certEntries = document.querySelectorAll('.certification-entry');
+    certEntries.forEach(entry => {
+        const name = entry.querySelector('select[name="certName"]').value;
+        const expiry = entry.querySelector('input[name="certExpiry"]').value;
+        const status = entry.querySelector('select[name="certStatus"]').value;
+        
+        if (name && expiry) {
+            certifications.push({ name, expiry, status });
+        }
+    });
+    
+    const employeeData = {
+        ...formData,
+        availableLocations,
+        authorizedTasks,
+        certifications,
+        lastUpdated: new Date().toISOString().split('T')[0]
+    };
+    
+    if (currentEditingEmployee) {
+        // Update existing employee
+        const index = originalEmployeeData.findIndex(e => e.id === currentEditingEmployee.id);
+        if (index >= 0) {
+            originalEmployeeData[index] = employeeData;
+            
+            // Update filtered data if it contains this employee
+            const filteredIndex = window.employeeData.findIndex(e => e.id === currentEditingEmployee.id);
+            if (filteredIndex >= 0) {
+                window.employeeData[filteredIndex] = employeeData;
             }
-        ];
+        }
+    } else {
+        // Add new employee
+        originalEmployeeData.push(employeeData);
+        window.employeeData.push(employeeData);
+    }
+    
+    dataManager.saveData();
+    renderEmployeeProfiles();
+    closeEmployeeModal();
+    dataManager.showSaveNotification();
+}
 
-        // Patient data with location tracking
-        let patientData = [
-            {
-                id: 'P001', name: 'Robert Smith', currentLocation: 'Sunset Manor - Wing A',
-                room: 'Room 101A', admissionDate: '2024-12-15', lastTransfer: null,
-                careLevel: 'Assisted Living', activeTasks: 2, status: 'Current Resident',
-                transferHistory: []
-            },
-            {
-                id: 'P002', name: 'Mary Jones', currentLocation: 'Golden Care - Memory Unit',
-                room: 'Room 205B', admissionDate: '2025-01-08', lastTransfer: '2025-03-15',
-                careLevel: 'Memory Care', activeTasks: 3, status: 'Current Resident',
-                transferHistory: [
-                    { from: 'Golden Care - Assisted Living', to: 'Golden Care - Memory Unit', date: '2025-03-15', reason: 'Care level increase' }
-                ]
-            },
-            {
-                id: 'P003', name: 'James Brown', currentLocation: 'Riverside Lodge - Skilled Nursing',
-                room: 'Room 315C', admissionDate: '2025-02-20', lastTransfer: null,
-                careLevel: 'Skilled Nursing', activeTasks: 5, status: 'Current Resident',
-                transferHistory: []
-            },
-            {
-                id: 'P004', name: 'Patricia Davis', currentLocation: 'Sunset Manor - Wing B',
-                room: 'Room 202A', admissionDate: '2024-11-30', lastTransfer: '2025-05-10',
-                careLevel: 'Assisted Living', activeTasks: 1, status: 'Current Resident',
-                transferHistory: [
-                    { from: 'Sunset Manor - Wing A', to: 'Sunset Manor - Wing B', date: '2025-05-10', reason: 'Room preference' }
-                ]
-            },
-            {
-                id: 'P005', name: 'Michael Wilson', currentLocation: 'Golden Care - Assisted Living',
-                room: 'Room 150B', admissionDate: '2025-04-05', lastTransfer: null,
-                careLevel: 'Assisted Living', activeTasks: 2, status: 'Current Resident',
-                transferHistory: []
-            },
-            {
-                id: 'P006', name: 'Dorothy Miller', currentLocation: 'Riverside Lodge - Rehabilitation',
-                room: 'Room 220D', admissionDate: '2025-03-12', lastTransfer: '2025-04-20',
-                careLevel: 'Rehabilitation', activeTasks: 4, status: 'Current Resident',
-                transferHistory: [
-                    { from: 'Riverside Lodge - Skilled Nursing', to: 'Riverside Lodge - Rehabilitation', date: '2025-04-20', reason: 'Rehabilitation program' }
-                ]
-            }
-        ];
+function deleteEmployee() {
+    if (!currentEditingEmployee) return;
+    
+    if (confirm(`Are you sure you want to delete employee ${currentEditingEmployee.name}? This will also remove all their delegations.`)) {
+        // Remove from original data
+        const index = originalEmployeeData.findIndex(e => e.id === currentEditingEmployee.id);
+        if (index >= 0) {
+            originalEmployeeData.splice(index, 1);
+        }
+        
+        // Remove from filtered data
+        const filteredIndex = window.employeeData.findIndex(e => e.id === currentEditingEmployee.id);
+        if (filteredIndex >= 0) {
+            window.employeeData.splice(filteredIndex, 1);
+        }
+        
+        // Remove related delegations
+        originalDelegationData = originalDelegationData.filter(d => d.employeeId !== currentEditingEmployee.id);
+        window.delegationData = window.delegationData.filter(d => d.employeeId !== currentEditingEmployee.id);
+        
+        dataManager.saveData();
+        renderEmployeeProfiles();
+        closeEmployeeModal();
+        dataManager.showSaveNotification();
+    }
+}
 
-        // Enhanced delegation data with compliance tracking
-        let delegationData = [
-            {
-                id: 'DEL001', patientId: 'P001', patientName: 'Robert Smith', 
-                currentLocation: 'Sunset Manor - Wing A', task: 'Medication Administration',
-                assignedNurse: 'Sarah Johnson', employeeId: 'EMP001', qualificationCheck: 'Valid',
-                date: '2025-05-25', shift: 'Day', delegator: 'Dr. Martinez', priority: 'High',
-                status: 'Pending', locationMatch: 'Valid', complianceStatus: 'Compliant'
-            },
-            {
-                id: 'DEL002', patientId: 'P002', patientName: 'Mary Jones',
-                currentLocation: 'Golden Care - Memory Unit', task: 'Blood Sugar Test',
-                assignedNurse: 'Mike Chen', employeeId: 'EMP002', qualificationCheck: 'Valid',
-                date: '2025-05-25', shift: 'Day', delegator: 'Nurse Wilson', priority: 'Medium',
-                status: 'Completed', locationMatch: 'Valid', complianceStatus: 'Compliant'
-            },
-            {
-                id: 'DEL003', patientId: 'P003', patientName: 'James Brown',
-                currentLocation: 'Riverside Lodge - Skilled Nursing', task: 'Wound Care',
-                assignedNurse: 'Lisa Rodriguez', employeeId: 'EMP003', qualificationCheck: 'Expiring Soon',
-                date: '2025-05-24', shift: 'Evening', delegator: 'Dr. Thompson', priority: 'High',
-                status: 'Overdue', locationMatch: 'Valid', complianceStatus: 'At Risk'
-            },
-            {
-                id: 'DEL004', patientId: 'P004', patientName: 'Patricia Davis',
-                currentLocation: 'Sunset Manor - Wing B', task: 'Vital Signs Check',
-                assignedNurse: 'Amanda Taylor', employeeId: 'EMP004', qualificationCheck: 'Valid',
-                date: '2025-05-25', shift: 'Night', delegator: 'Nurse Adams', priority: 'Low',
-                status: 'Pending', locationMatch: 'Mismatch', complianceStatus: 'Non-Compliant'
-            },
-            {
-                id: 'DEL005', patientId: 'P005', patientName: 'Michael Wilson',
-                currentLocation: 'Golden Care - Assisted Living', task: 'Physical Therapy',
-                assignedNurse: 'David Kim', employeeId: 'EMP005', qualificationCheck: 'Valid',
-                date: '2025-05-25', shift: 'Day', delegator: 'Dr. Clark', priority: 'Medium',
-                status: 'Reassigned', locationMatch: 'Invalid', complianceStatus: 'Non-Compliant'
-            },
-            {
-                id: 'DEL006', patientId: 'P006', patientName: 'Dorothy Miller',
-                currentLocation: 'Riverside Lodge - Rehabilitation', task: 'Wound Care',
-                assignedNurse: 'Jennifer Walsh', employeeId: 'EMP006', qualificationCheck: 'Valid',
-                date: '2025-05-26', shift: 'Day', delegator: 'Dr. Lee', priority: 'High',
-                status: 'Pending', locationMatch: 'Valid', complianceStatus: 'Compliant'
-            }
-        ];
+function showEmployeeValidationError(errors) {
+    const errorDiv = document.getElementById('employeeValidationErrors');
+    errorDiv.innerHTML = `
+        <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 10px; border-radius: 4px; margin: 10px 0;">
+            <strong>Please fix the following issues:</strong><br>
+            ${errors.map(error => `• ${error}`).join('<br>')}
+        </div>
+    `;
+}
 
-        // Enhanced Data Management with Auto-Save
-        class DataManager {
-            constructor() {
-                this.storageKey = 'nursingDelegationData';
-                this.loadData();
-            }
+function closeEmployeeModal() {
+    document.getElementById('employeeModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+    document.getElementById('employeeValidationErrors').innerHTML = '';
+    currentEditingEmployee = null;
+}
 
-            saveData() {
-                const data = {
-                    delegationData,
-                    employeeData,
-                    patientData,
-                    lastSaved: new Date().toISOString()
+// Patient Management Functions
+function openPatientModal(patientId = null) {
+    const modal = document.getElementById('patientModal');
+    const title = document.getElementById('patientModalTitle');
+    const deleteBtn = document.getElementById('deletePatientBtn');
+    const transferBtn = document.getElementById('transferPatientBtn');
+    
+    // Populate location dropdown
+    populatePatientLocationDropdown();
+    
+    if (patientId) {
+        // Edit mode
+        currentEditingPatient = originalPatientData.find(p => p.id === patientId);
+        title.textContent = 'Edit Patient Information';
+        deleteBtn.style.display = 'inline-block';
+        transferBtn.style.display = 'inline-block';
+        
+        if (currentEditingPatient) {
+            document.getElementById('patientId').value = currentEditingPatient.id;
+            document.getElementById('patientId').disabled = true;
+            document.getElementById('patientName').value = currentEditingPatient.name;
+            document.getElementById('patientCurrentLocation').value = currentEditingPatient.currentLocation;
+            document.getElementById('patientRoom').value = currentEditingPatient.room || '';
+            document.getElementById('patientAdmissionDate').value = currentEditingPatient.admissionDate || '';
+            document.getElementById('patientCareLevel').value = currentEditingPatient.careLevel || '';
+            document.getElementById('patientStatus').value = currentEditingPatient.status || 'Current Resident';
+        }
+    } else {
+        // Create mode
+        currentEditingPatient = null;
+        title.textContent = 'Add New Patient';
+        deleteBtn.style.display = 'none';
+        transferBtn.style.display = 'none';
+        document.getElementById('patientForm').reset();
+        document.getElementById('patientId').disabled = false;
+        document.getElementById('patientAdmissionDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('patientStatus').value = 'Current Resident';
+    }
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function populatePatientLocationDropdown() {
+    const select = document.getElementById('patientCurrentLocation');
+    select.innerHTML = '<option value="">Select Current Location</option>';
+    
+    config.locations.forEach(location => {
+        const option = document.createElement('option');
+        option.value = location;
+        option.textContent = location;
+        select.appendChild(option);
+    });
+}
+
+function savePatient() {
+    const formData = {
+        id: document.getElementById('patientId').value,
+        name: document.getElementById('patientName').value,
+        currentLocation: document.getElementById('patientCurrentLocation').value,
+        room: document.getElementById('patientRoom').value,
+        admissionDate: document.getElementById('patientAdmissionDate').value,
+        careLevel: document.getElementById('patientCareLevel').value,
+        status: document.getElementById('patientStatus').value
+    };
+    
+    // Validate required fields
+    if (!formData.id || !formData.name || !formData.currentLocation) {
+        showPatientValidationError(['Please fill in all required fields']);
+        return;
+    }
+    
+    const patientData = {
+        ...formData,
+        lastTransfer: currentEditingPatient ? currentEditingPatient.lastTransfer : null,
+        activeTasks: currentEditingPatient ? currentEditingPatient.activeTasks : 0,
+        transferHistory: currentEditingPatient ? currentEditingPatient.transferHistory : []
+    };
+    
+    if (currentEditingPatient) {
+        // Update existing patient
+        const index = originalPatientData.findIndex(p => p.id === currentEditingPatient.id);
+        if (index >= 0) {
+            // Check if location changed
+            if (originalPatientData[index].currentLocation !== formData.currentLocation) {
+                // Record automatic transfer
+                const transfer = {
+                    from: originalPatientData[index].currentLocation,
+                    to: formData.currentLocation,
+                    date: new Date().toISOString().split('T')[0],
+                    reason: 'Location updated via patient edit'
                 };
-                localStorage.setItem(this.storageKey, JSON.stringify(data));
-                this.showSaveNotification();
-            }
-
-            loadData() {
-                try {
-                    const stored = localStorage.getItem(this.storageKey);
-                    if (stored) {
-                        const data = JSON.parse(stored);
-                        if (data.delegationData) delegationData = data.delegationData;
-                        if (data.employeeData) employeeData = data.employeeData;
-                        if (data.patientData) patientData = data.patientData;
-                    }
-                } catch (error) {
-                    console.log('No saved data found, using defaults');
-                }
-            }
-
-            enableAutoSave() {
-                setInterval(() => {
-                    this.saveData();
-                }, 30000); // Auto-save every 30 seconds
-            }
-
-            exportData() {
-                const data = {
-                    delegationData,
-                    employeeData,
-                    patientData,
-                    exportDate: new Date().toISOString()
-                };
-                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `nursing-delegation-backup-${new Date().toISOString().split('T')[0]}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-            }
-
-            showSaveNotification() {
-                // Remove existing notification if any
-                const existing = document.querySelector('.save-notification');
-                if (existing) existing.remove();
                 
-                const notification = document.createElement('div');
-                notification.className = 'save-notification';
-                notification.innerHTML = '✅ Data saved automatically';
-                document.body.appendChild(notification);
-                
-                setTimeout(() => notification.style.opacity = '1', 100);
-                setTimeout(() => {
-                    notification.style.opacity = '0';
-                    setTimeout(() => {
-                        if (notification.parentNode) {
-                            notification.parentNode.removeChild(notification);
-                        }
-                    }, 300);
-                }, 2000);
-            }
-        }
-
-        // Form Validation
-        class FormValidator {
-            static validateDelegation(formData) {
-                const errors = [];
-                
-                if (!formData.patientId) errors.push('Patient selection is required');
-                if (!formData.employeeId) errors.push('Employee assignment is required');
-                if (!formData.task) errors.push('Task selection is required');
-                if (!formData.date) errors.push('Date is required');
-                if (!formData.shift) errors.push('Shift is required');
-                if (!formData.delegator) errors.push('Delegator is required');
-                
-                // Business logic validation
-                const employee = employeeData.find(e => e.id === formData.employeeId);
-                const patient = patientData.find(p => p.id === formData.patientId);
-                
-                if (employee && patient) {
-                    const taskRequirement = config.tasks.find(t => t.name === formData.task);
-                    if (taskRequirement && employee.certifications) {
-                        const hasQualification = employee.certifications.some(cert => 
-                            cert.name === taskRequirement.requiresCert && cert.status === 'valid'
-                        );
-                        if (!hasQualification) {
-                            errors.push(`Employee does not have required certification: ${taskRequirement.requiresCert}`);
-                        }
-                    }
-                    
-                    if (employee.availableLocations && !employee.availableLocations.includes(patient.currentLocation)) {
-                        errors.push(`Employee is not authorized for location: ${patient.currentLocation}`);
-                    }
-                }
-                
-                return {
-                    isValid: errors.length === 0,
-                    errors: errors
-                };
+                patientData.transferHistory = [...(originalPatientData[index].transferHistory || []), transfer];
+                patientData.lastTransfer = transfer.date;
             }
             
-            static showValidationErrors(errors) {
-                const errorDiv = document.getElementById('modalValidationErrors');
-                errorDiv.innerHTML = `
-                    <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 10px; border-radius: 4px; margin: 10px 0;">
-                        <strong>Please fix the following issues:</strong><br>
-                        ${errors.map(error => `• ${error}`).join('<br>')}
-                    </div>
-                `;
-            }
+            originalPatientData[index] = patientData;
             
-            static clearErrors() {
-                const errorDiv = document.getElementById('modalValidationErrors');
-                if (errorDiv) errorDiv.innerHTML = '';
+            // Update filtered data if it contains this patient
+            const filteredIndex = window.patientData.findIndex(p => p.id === currentEditingPatient.id);
+            if (filteredIndex >= 0) {
+                window.patientData[filteredIndex] = patientData;
             }
         }
+    } else {
+        // Add new patient
+        originalPatientData.push(patientData);
+        window.patientData.push(patientData);
+    }
+    
+    dataManager.saveData();
+    renderPatientTracking();
+    closePatientModal();
+    dataManager.showSaveNotification();
+}
 
-        // Enhanced Modal Management
-        class ModalManager {
-            static openDelegationModal(delegationId = null) {
-                const modal = document.getElementById('delegationModal');
-                const title = document.getElementById('modalTitle');
-                
-                this.populatePatientDropdown();
-                this.populateTaskDropdown();
-                this.populateNurseDropdown();
-                
-                if (delegationId) {
-                    title.textContent = 'Edit Delegation';
-                    const delegation = delegationData.find(d => d.id === delegationId);
-                    if (delegation) {
-                        document.getElementById('modalPatientId').value = delegation.patientId;
-                        document.getElementById('modalTask').value = delegation.task;
-                        document.getElementById('modalEmployeeId').value = delegation.employeeId;
-                        document.getElementById('modalDate').value = delegation.date;
-                        document.getElementById('modalShift').value = delegation.shift;
-                        document.getElementById('modalDelegator').value = delegation.delegator;
-                        document.getElementById('modalPriority').value = delegation.priority;
-                    }
-                } else {
-                    title.textContent = 'Create New Delegation';
-                    document.getElementById('delegationForm').reset();
-                    document.getElementById('modalDate').value = new Date().toISOString().split('T')[0];
-                    document.getElementById('modalPriority').value = 'Medium';
-                }
-                
-                modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-                FormValidator.clearErrors();
+function deletePatient() {
+    if (!currentEditingPatient) return;
+    
+    if (confirm(`Are you sure you want to archive patient ${currentEditingPatient.name}? This will also remove all their delegations.`)) {
+        // Update status to archived instead of deleting
+        const index = originalPatientData.findIndex(p => p.id === currentEditingPatient.id);
+        if (index >= 0) {
+            originalPatientData[index].status = 'Archived';
+        }
+        
+        // Update filtered data
+        const filteredIndex = window.patientData.findIndex(p => p.id === currentEditingPatient.id);
+        if (filteredIndex >= 0) {
+            window.patientData[filteredIndex].status = 'Archived';
+        }
+        
+        // Archive related delegations
+        originalDelegationData.forEach(d => {
+            if (d.patientId === currentEditingPatient.id) {
+                d.status = 'Cancelled';
+                d.complianceStatus = 'Archived';
             }
-            
-            static populatePatientDropdown() {
-                const select = document.getElementById('modalPatientId');
-                select.innerHTML = '<option value="">Select Patient</option>';
-                
-                patientData.forEach(patient => {
-                    const option = document.createElement('option');
-                    option.value = patient.id;
-                    option.textContent = `${patient.name} - ${patient.currentLocation}`;
-                    select.appendChild(option);
-                });
-            }
-            
-            static populateTaskDropdown() {
-                const select = document.getElementById('modalTask');
-                select.innerHTML = '<option value="">Select Task</option>';
-                
-                config.tasks.forEach(task => {
-                    const option = document.createElement('option');
-                    option.value = task.name;
-                    option.textContent = `${task.name} (Requires: ${task.requiresCert})`;
-                    select.appendChild(option);
-                });
-            }
-            
-            static populateNurseDropdown(taskName = null) {
-                const select = document.getElementById('modalEmployeeId');
-                select.innerHTML = '<option value="">Select Nurse</option>';
-                
-                let availableEmployees = employeeData;
-                
-                if (taskName) {
-                    const task = config.tasks.find(t => t.name === taskName);
-                    if (task) {
-                        availableEmployees = employeeData.filter(employee => 
-                            employee.certifications && employee.certifications.some(cert => 
-                                cert.name === task.requiresCert && cert.status === 'valid'
-                            )
-                        );
-                    }
-                }
-                
-                availableEmployees.forEach(employee => {
-                    const option = document.createElement('option');
-                    option.value = employee.id;
-                    option.textContent = `${employee.name} - ${employee.primaryLocation}`;
-                    select.appendChild(option);
-                });
-            }
-        }
-
-        // Global Search Functionality
-        class GlobalSearch {
-            constructor() {
-                this.setupSearchUI();
-            }
-            
-            setupSearchUI() {
-                // Search UI is already in HTML
-            }
-            
-            performSearch(query, sheetId) {
-                const resultsContainer = document.getElementById(`searchResults-${sheetId}`);
-                
-                if (query.length < 2) {
-                    resultsContainer.innerHTML = '';
-                    return;
-                }
-                
-                const results = this.searchAllData(query.toLowerCase());
-                this.displayResults(results, resultsContainer, sheetId);
-            }
-            
-            searchAllData(query) {
-                const results = [];
-                
-                // Search employees
-                employeeData.forEach(employee => {
-                    if (employee.name.toLowerCase().includes(query) || 
-                        employee.id.toLowerCase().includes(query) ||
-                        employee.primaryLocation.toLowerCase().includes(query)) {
-                        results.push({
-                            type: 'Employee',
-                            title: employee.name,
-                            subtitle: `${employee.id} - ${employee.primaryLocation}`,
-                            data: employee
-                        });
-                    }
-                });
-                
-                // Search patients
-                patientData.forEach(patient => {
-                    if (patient.name.toLowerCase().includes(query) || 
-                        patient.id.toLowerCase().includes(query) ||
-                        patient.currentLocation.toLowerCase().includes(query)) {
-                        results.push({
-                            type: 'Patient',
-                            title: patient.name,
-                            subtitle: `${patient.id} - ${patient.currentLocation}`,
-                            data: patient
-                        });
-                    }
-                });
-                
-                // Search delegations
-                delegationData.forEach(delegation => {
-                    if (delegation.task.toLowerCase().includes(query) ||
-                        delegation.patientName.toLowerCase().includes(query) ||
-                        delegation.assignedNurse.toLowerCase().includes(query)) {
-                        results.push({
-                            type: 'Delegation',
-                            title: delegation.task,
-                            subtitle: `${delegation.patientName} → ${delegation.assignedNurse}`,
-                            data: delegation
-                        });
-                    }
-                });
-                
-                return results.slice(0, 10); // Limit to 10 results
-            }
-            
-            displayResults(results, container, sheetId) {
-                if (results.length === 0) {
-                    container.innerHTML = '<div class="search-result-item">No results found</div>';
-                    return;
-                }
-                
-                container.innerHTML = results.map(result => `
-                    <div class="search-result-item" onclick="globalSearch.selectResult('${result.type}', '${sheetId}')">
-                        <span class="search-result-type">${result.type}</span>
-                        <strong>${result.title}</strong><br>
-                        <small>${result.subtitle}</small>
-                    </div>
-                `).join('');
-            }
-            
-            selectResult(type, sheetId) {
-                // Clear search results
-                document.querySelectorAll('.search-results').forEach(el => el.innerHTML = '');
-                document.querySelectorAll('.search-input').forEach(el => el.value = '');
-            }
-        }
-
-        // Report Generator
-        class ReportGenerator {
-            static generateDelegationSummary(startDate, endDate, location) {
-                let data = delegationData;
-                
-                // Filter by date range
-                if (startDate && endDate) {
-                    data = data.filter(d => {
-                        const delegationDate = new Date(d.date);
-                        return delegationDate >= new Date(startDate) && delegationDate <= new Date(endDate);
-                    });
-                }
-                
-                // Filter by location
-                if (location) {
-                    data = data.filter(d => d.currentLocation === location);
-                }
-                
-                const summary = {
-                    totalDelegations: data.length,
-                    completedDelegations: data.filter(d => d.status === 'Completed').length,
-                    pendingDelegations: data.filter(d => d.status === 'Pending').length,
-                    overdueDelegations: data.filter(d => d.status === 'Overdue').length,
-                    completionRate: data.length > 0 ? (data.filter(d => d.status === 'Completed').length / data.length * 100).toFixed(1) : 0,
-                    byLocation: this.groupByLocation(data),
-                    byNurse: this.groupByNurse(data),
-                    byTask: this.groupByTask(data)
-                };
-                
-                return summary;
-            }
-            
-            static generateComplianceReport(startDate, endDate, location) {
-                let data = delegationData;
-                
-                // Apply filters
-                if (startDate && endDate) {
-                    data = data.filter(d => {
-                        const delegationDate = new Date(d.date);
-                        return delegationDate >= new Date(startDate) && delegationDate <= new Date(endDate);
-                    });
-                }
-                
-                if (location) {
-                    data = data.filter(d => d.currentLocation === location);
-                }
-                
-                const compliance = {
-                    totalDelegations: data.length,
-                    compliantDelegations: data.filter(d => d.complianceStatus === 'Compliant').length,
-                    nonCompliantDelegations: data.filter(d => d.complianceStatus === 'Non-Compliant').length,
-                    atRiskDelegations: data.filter(d => d.complianceStatus === 'At Risk').length,
-                    complianceRate: data.length > 0 ? (data.filter(d => d.complianceStatus === 'Compliant').length / data.length * 100).toFixed(1) : 0,
-                    qualificationIssues: data.filter(d => d.qualificationCheck !== 'Valid').length,
-                    locationMismatches: data.filter(d => d.locationMatch !== 'Valid').length,
-                    certificationIssues: this.getCertificationIssues()
-                };
-                
-                return compliance;
-            }
-            
-            static getCertificationIssues() {
-                const issues = [];
-                employeeData.forEach(employee => {
-                    employee.certifications.forEach(cert => {
-                        if (cert.status === 'expired' || cert.status === 'expiring') {
-                            issues.push({
-                                employee: employee.name,
-                                certification: cert.name,
-                                status: cert.status,
-                                expiryDate: cert.expiry
-                            });
-                        }
-                    });
-                });
-                return issues;
-            }
-            
-            static groupByLocation(data) {
-                const grouped = {};
-                data.forEach(d => {
-                    if (!grouped[d.currentLocation]) {
-                        grouped[d.currentLocation] = 0;
-                    }
-                    grouped[d.currentLocation]++;
-                });
-                return grouped;
-            }
-            
-            static groupByNurse(data) {
-                const grouped = {};
-                data.forEach(d => {
-                    if (!grouped[d.assignedNurse]) {
-                        grouped[d.assignedNurse] = 0;
-                    }
-                    grouped[d.assignedNurse]++;
-                });
-                return grouped;
-            }
-            
-            static groupByTask(data) {
-                const grouped = {};
-                data.forEach(d => {
-                    if (!grouped[d.task]) {
-                        grouped[d.task] = 0;
-                    }
-                    grouped[d.task]++;
-                });
-                return grouped;
-            }
-            
-            static renderReport(reportData, reportType) {
-                const container = document.getElementById('reportContainer');
-                
-                switch(reportType) {
-                    case 'delegation-summary':
-                        container.innerHTML = this.renderDelegationSummary(reportData);
-                        break;
-                    case 'compliance-report':
-                        container.innerHTML = this.renderComplianceReport(reportData);
-                        break;
-                    default:
-                        container.innerHTML = '<p>Report type not implemented yet.</p>';
-                }
-            }
-            
-            static renderDelegationSummary(data) {
-                return `
-                    <div class="dashboard" style="margin: 20px 0;">
-                        <div class="kpi-card">
-                            <div class="kpi-label">Total Delegations</div>
-                            <div class="kpi-number">${data.totalDelegations}</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">Completed</div>
-                            <div class="kpi-number" style="color: #28a745;">${data.completedDelegations}</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">Pending</div>
-                            <div class="kpi-number" style="color: #ffc107;">${data.pendingDelegations}</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">Overdue</div>
-                            <div class="kpi-number" style="color: #dc3545;">${data.overdueDelegations}</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">Completion Rate</div>
-                            <div class="kpi-number">${data.completionRate}%</div>
-                        </div>
-                    </div>
-                    
-                    <div class="chart-container">
-                        <div class="chart-title">Delegations by Location</div>
-                        <div class="bar-chart">
-                            ${Object.entries(data.byLocation).map(([location, count]) => `
-                                <div class="bar-item">
-                                    <div class="bar-label">${location}</div>
-                                    <div class="bar" style="width: ${(count / Math.max(...Object.values(data.byLocation))) * 100}%">${count}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-            
-            static renderComplianceReport(data) {
-                return `
-                    <div class="dashboard" style="margin: 20px 0;">
-                        <div class="kpi-card">
-                            <div class="kpi-label">Compliance Rate</div>
-                            <div class="kpi-number ${data.complianceRate >= 95 ? 'completion-rate-high' : data.complianceRate >= 80 ? 'completion-rate-medium' : 'completion-rate-low'}">${data.complianceRate}%</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">Compliant</div>
-                            <div class="kpi-number" style="color: #28a745;">${data.compliantDelegations}</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">At Risk</div>
-                            <div class="kpi-number" style="color: #ffc107;">${data.atRiskDelegations}</div>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">Non-Compliant</div>
-                            <div class="kpi-number" style="color: #dc3545;">${data.nonCompliantDelegations}</div>
-                        </div>
-                    </div>
-                    
-                    <div class="alert-section">
-                        <div class="alert-title">🚨 Compliance Issues Requiring Attention</div>
-                        <div class="alert-item">
-                            <span>Qualification Issues</span>
-                            <span>${data.qualificationIssues}</span>
-                        </div>
-                        <div class="alert-item">
-                            <span>Location Mismatches</span>
-                            <span>${data.locationMismatches}</span>
-                        </div>
-                        <div class="alert-item">
-                            <span>Certification Problems</span>
-                            <span>${data.certificationIssues.length}</span>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        // Navigation between sheets
-        function showSheet(sheetId) {
-            document.querySelectorAll('.sheet').forEach(sheet => {
-                sheet.classList.remove('active');
-            });
-            
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            document.getElementById(sheetId).classList.add('active');
-            event.target.classList.add('active');
-            
-            // Load sheet-specific content
-            switch(sheetId) {
-                case 'delegation-entry':
-                    renderDelegationEntry();
-                    break;
-                case 'employee-profiles':
-                    renderEmployeeProfiles();
-                    populateEmployeeFilters();
-                    break;
-                case 'patient-tracking':
-                    renderPatientTracking();
-                    populatePatientFilters();
-                    break;
-                case 'task-tracker':
-                    renderTaskTracker();
-                    populateTrackerFilters();
-                    break;
-                case 'dashboard':
-                    renderDashboard();
-                    break;
-                case 'reports':
-                    updateReportOptions();
-                    break;
-                case 'compliance':
-                    renderComplianceMonitor();
-                    break;
-            }
-        }
-
-        // Helper functions
-        function getStatusClass(status) {
-            switch(status?.toLowerCase()) {
-                case 'completed': return 'status-completed';
-                case 'pending': return 'status-pending';
-                case 'overdue': return 'status-overdue';
-                case 'reassigned': return 'status-reassigned';
-                default: return '';
-            }
-        }
-
-        function getComplianceIcon(status) {
-            switch(status) {
-                case 'Compliant': return '✅';
-                case 'At Risk': return '⚠️';
-                case 'Non-Compliant': return '❌';
-                default: return '❓';
-            }
-        }
-
-        // Render functions
-        function renderDelegationEntry() {
-            const tbody = document.getElementById('delegationTableBody');
-            tbody.innerHTML = '';
-            
-            delegationData.forEach(delegation => {
-                const tr = document.createElement('tr');
-                tr.className = getStatusClass(delegation.status);
-                
-                tr.innerHTML = `
-                    <td><span class="badge badge-${delegation.status.toLowerCase().replace(' ', '-')}">${delegation.status}</span></td>
-                    <td>${delegation.patientName} (${delegation.patientId})</td>
-                    <td>${delegation.currentLocation}</td>
-                    <td>${delegation.task}</td>
-                    <td>${delegation.assignedNurse}</td>
-                    <td><span class="badge badge-${delegation.qualificationCheck === 'Valid' ? 'success' : delegation.qualificationCheck === 'Expiring Soon' ? 'warning' : 'danger'}">${delegation.qualificationCheck}</span></td>
-                    <td>${delegation.date}</td>
-                    <td>${delegation.shift}</td>
-                    <td>${delegation.priority}</td>
-                    <td><span class="badge badge-${delegation.complianceStatus === 'Compliant' ? 'success' : delegation.complianceStatus === 'At Risk' ? 'warning' : 'danger'}">${delegation.complianceStatus}</span></td>
-                    <td>
-                        <button class="btn" style="padding: 4px 8px; font-size: 11px;" onclick="editDelegation('${delegation.id}')">Edit</button>
-                    </td>
-                `;
-                
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderEmployeeProfiles() {
-            const tbody = document.getElementById('employeeTableBody');
-            tbody.innerHTML = '';
-            
-            employeeData.forEach(employee => {
-                const tr = document.createElement('tr');
-                
-                const certificationBadges = employee.certifications.map(cert => 
-                    `<span class="badge badge-${cert.status === 'valid' ? 'success' : cert.status === 'expiring' ? 'warning' : 'danger'}">${cert.name}</span>`
-                ).join(' ');
-                
-                const locationBadges = employee.availableLocations.map(loc => 
-                    `<span class="badge badge-info">${loc}</span>`
-                ).join(' ');
-                
-                tr.innerHTML = `
-                    <td>${employee.id}</td>
-                    <td><strong>${employee.name}</strong></td>
-                    <td>${employee.primaryLocation}</td>
-                    <td>${locationBadges}</td>
-                    <td>${employee.authorizedTasks.join(', ')}</td>
-                    <td>${certificationBadges}</td>
-                    <td><span class="badge badge-success">${employee.status}</span></td>
-                    <td>${employee.lastUpdated}</td>
-                `;
-                
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderPatientTracking() {
-            const tbody = document.getElementById('patientTableBody');
-            tbody.innerHTML = '';
-            
-            patientData.forEach(patient => {
-                const tr = document.createElement('tr');
-                
-                tr.innerHTML = `
-                    <td>${patient.id}</td>
-                    <td><strong>${patient.name}</strong></td>
-                    <td>${patient.currentLocation}</td>
-                    <td>${patient.room}</td>
-                    <td>${patient.admissionDate}</td>
-                    <td>${patient.lastTransfer || 'N/A'}</td>
-                    <td><span class="badge badge-info">${patient.careLevel}</span></td>
-                    <td>${patient.activeTasks}</td>
-                    <td><span class="badge badge-success">${patient.status}</span></td>
-                `;
-                
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderTaskTracker() {
-            const tbody = document.getElementById('trackerTableBody');
-            tbody.innerHTML = '';
-            
-            const sortedData = [...delegationData].sort((a, b) => {
-                const priorityOrder = {'Overdue': 1, 'Pending': 2, 'Reassigned': 3, 'Completed': 4};
-                return priorityOrder[a.status] - priorityOrder[b.status];
-            });
-            
-            sortedData.forEach(delegation => {
-                const tr = document.createElement('tr');
-                tr.className = getStatusClass(delegation.status);
-                
-                tr.innerHTML = `
-                    <td>${getComplianceIcon(delegation.complianceStatus)}</td>
-                    <td>${delegation.patientName}</td>
-                    <td>${delegation.currentLocation}</td>
-                    <td>${delegation.task}</td>
-                    <td>${delegation.assignedNurse}</td>
-                    <td><span class="badge badge-${delegation.qualificationCheck === 'Valid' ? 'success' : delegation.qualificationCheck === 'Expiring Soon' ? 'warning' : 'danger'}">${delegation.qualificationCheck}</span></td>
-                    <td><span class="badge badge-${delegation.locationMatch === 'Valid' ? 'success' : 'danger'}">${delegation.locationMatch}</span></td>
-                    <td>${delegation.date}</td>
-                    <td><span class="badge badge-${delegation.status.toLowerCase().replace(' ', '-')}">${delegation.status}</span></td>
-                    <td><span class="badge badge-${delegation.complianceStatus === 'Compliant' ? 'success' : delegation.complianceStatus === 'At Risk' ? 'warning' : 'danger'}">${delegation.complianceStatus}</span></td>
-                `;
-                
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderDashboard() {
-            // Calculate metrics
-            const totalDelegations = delegationData.length;
-            const completedTasks = delegationData.filter(d => d.status === 'Completed').length;
-            const completionRate = totalDelegations > 0 ? (completedTasks / totalDelegations * 100).toFixed(1) : 0;
-            const compliantTasks = delegationData.filter(d => d.complianceStatus === 'Compliant').length;
-            const complianceScore = totalDelegations > 0 ? (compliantTasks / totalDelegations * 100).toFixed(1) : 0;
-            const overdueTasks = delegationData.filter(d => d.status === 'Overdue').length;
-            
-            // Update KPIs
-            document.getElementById('totalDelegations').textContent = totalDelegations;
-            document.getElementById('completionRate').textContent = completionRate + '%';
-            document.getElementById('complianceScore').textContent = complianceScore + '%';
-            document.getElementById('activeEmployees').textContent = employeeData.filter(e => e.status === 'Active').length;
-            document.getElementById('currentPatients').textContent = patientData.filter(p => p.status === 'Current Resident').length;
-            document.getElementById('overdueTasks').textContent = overdueTasks;
-            
-            // Color code completion rate
-            const completionElement = document.getElementById('completionRate');
-            completionElement.className = 'kpi-number ' + 
-                (completionRate >= 90 ? 'completion-rate-high' :
-                 completionRate >= 70 ? 'completion-rate-medium' : 'completion-rate-low');
-            
-            // Color code compliance score
-            const complianceElement = document.getElementById('complianceScore');
-            complianceElement.className = 'kpi-number ' + 
-                (complianceScore >= 95 ? 'completion-rate-high' :
-                 complianceScore >= 80 ? 'completion-rate-medium' : 'completion-rate-low');
-            
-            renderLocationChart();
-            renderWorkloadChart();
-            renderPatientDistributionChart();
-        }
-
-        function renderLocationChart() {
-            const locationChart = document.getElementById('locationChart');
-            const locationCounts = {};
-            
-            delegationData.forEach(d => {
-                locationCounts[d.currentLocation] = (locationCounts[d.currentLocation] || 0) + 1;
-            });
-            
-            const maxCount = Math.max(...Object.values(locationCounts), 1);
-            locationChart.innerHTML = '';
-            
-            Object.entries(locationCounts).forEach(([location, count]) => {
-                const percentage = (count / maxCount) * 100;
-                const barItem = document.createElement('div');
-                barItem.className = 'bar-item';
-                barItem.innerHTML = `
-                    <div class="bar-label">${location}</div>
-                    <div class="bar" style="width: ${percentage}%">${count}</div>
-                `;
-                locationChart.appendChild(barItem);
-            });
-        }
-
-        function renderWorkloadChart() {
-            const workloadChart = document.getElementById('workloadChart');
-            const nurseCounts = {};
-            
-            delegationData.forEach(d => {
-                nurseCounts[d.assignedNurse] = (nurseCounts[d.assignedNurse] || 0) + 1;
-            });
-            
-            const sortedNurses = Object.entries(nurseCounts)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 5);
-            
-            const maxCount = sortedNurses[0] ? sortedNurses[0][1] : 1;
-            workloadChart.innerHTML = '';
-            
-            sortedNurses.forEach(([nurse, count]) => {
-                const percentage = (count / maxCount) * 100;
-                const barItem = document.createElement('div');
-                barItem.className = 'bar-item';
-                barItem.innerHTML = `
-                    <div class="bar-label">${nurse}</div>
-                    <div class="bar" style="width: ${percentage}%">${count}</div>
-                `;
-                workloadChart.appendChild(barItem);
-            });
-        }
-
-        function renderPatientDistributionChart() {
-            const patientChart = document.getElementById('patientDistributionChart');
-            const locationCounts = {};
-            
-            patientData.forEach(p => {
-                locationCounts[p.currentLocation] = (locationCounts[p.currentLocation] || 0) + 1;
-            });
-            
-            const maxCount = Math.max(...Object.values(locationCounts), 1);
-            patientChart.innerHTML = '';
-            
-            Object.entries(locationCounts).forEach(([location, count]) => {
-                const percentage = (count / maxCount) * 100;
-                const barItem = document.createElement('div');
-                barItem.className = 'bar-item';
-                barItem.innerHTML = `
-                    <div class="bar-label">${location}</div>
-                    <div class="bar" style="width: ${percentage}%">${count}</div>
-                `;
-                patientChart.appendChild(barItem);
-            });
-        }
-
-        function renderComplianceMonitor() {
-            // Count compliance issues
-            const expiredCerts = employeeData.reduce((count, emp) => 
-                count + emp.certifications.filter(cert => cert.status === 'expired').length, 0);
-            const unqualifiedTasks = delegationData.filter(d => d.qualificationCheck !== 'Valid').length;
-            const locationMismatches = delegationData.filter(d => d.locationMatch !== 'Valid').length;
-            
-            document.getElementById('expiredCertCount').textContent = expiredCerts;
-            document.getElementById('unqualifiedCount').textContent = unqualifiedTasks;
-            document.getElementById('locationMismatchCount').textContent = locationMismatches;
-            
-            // Render certification calendar
-            const certCalendar = document.getElementById('certificationCalendar');
-            certCalendar.innerHTML = '';
-            
-            const expiringCerts = [];
-            employeeData.forEach(emp => {
-                emp.certifications.forEach(cert => {
-                    if (cert.status === 'expiring' || cert.status === 'expired') {
-                        expiringCerts.push({
-                            employee: emp.name,
-                            certification: cert.name,
-                            expiry: cert.expiry,
-                            status: cert.status
-                        });
-                    }
-                });
-            });
-            
-            expiringCerts.sort((a, b) => new Date(a.expiry) - new Date(b.expiry));
-            
-            if (expiringCerts.length === 0) {
-                certCalendar.innerHTML = '<div style="padding: 20px; text-align: center; color: #28a745;">✅ No certification issues found</div>';
-            } else {
-                expiringCerts.forEach(cert => {
-                    const div = document.createElement('div');
-                    div.style.cssText = 'padding: 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;';
-                    div.innerHTML = `
-                        <span><strong>${cert.employee}</strong> - ${cert.certification}</span>
-                        <span class="badge badge-${cert.status === 'expired' ? 'danger' : 'warning'}">${cert.expiry}</span>
-                    `;
-                    certCalendar.appendChild(div);
-                });
-            }
-        }
-
-        // Enhanced functions
-        function updateAvailableNurses() {
-            const taskName = document.getElementById('modalTask').value;
-            ModalManager.populateNurseDropdown(taskName);
-        }
-
-        function closeModal() {
-            document.getElementById('delegationModal').style.display = 'none';
-            document.body.style.overflow = 'auto';
-            FormValidator.clearErrors();
-        }
-
-        function saveDelegation() {
-            const formData = {
-                patientId: document.getElementById('modalPatientId').value,
-                task: document.getElementById('modalTask').value,
-                employeeId: document.getElementById('modalEmployeeId').value,
-                date: document.getElementById('modalDate').value,
-                shift: document.getElementById('modalShift').value,
-                delegator: document.getElementById('modalDelegator').value,
-                priority: document.getElementById('modalPriority').value || 'Medium'
-            };
-            
-            const validation = FormValidator.validateDelegation(formData);
-            if (!validation.isValid) {
-                FormValidator.showValidationErrors(validation.errors);
-                return;
-            }
-            
-            const patient = patientData.find(p => p.id === formData.patientId);
-            const employee = employeeData.find(e => e.id === formData.employeeId);
-            
-            if (!patient || !employee) {
-                FormValidator.showValidationErrors(['Selected patient or employee not found']);
-                return;
-            }
-            
-            const newDelegation = {
-                id: 'DEL' + String(delegationData.length + 1).padStart(3, '0'),
-                patientId: formData.patientId,
-                patientName: patient.name,
-                currentLocation: patient.currentLocation,
-                task: formData.task,
-                assignedNurse: employee.name,
-                employeeId: formData.employeeId,
-                qualificationCheck: 'Valid',
-                date: formData.date,
-                shift: formData.shift,
-                delegator: formData.delegator,
-                priority: formData.priority,
-                status: 'Pending',
-                locationMatch: employee.availableLocations && employee.availableLocations.includes(patient.currentLocation) ? 'Valid' : 'Mismatch',
-                complianceStatus: 'Compliant'
-            };
-            
-            delegationData.push(newDelegation);
-            dataManager.saveData();
-            renderDelegationEntry();
-            closeModal();
-            
-            dataManager.showSaveNotification();
-        }
-
-        // Filter functions
-        function populateEmployeeFilters() {
-            const locationFilter = document.getElementById('employeeLocationFilter');
-            const uniqueLocations = [...new Set(employeeData.map(emp => emp.primaryLocation))];
-            
-            locationFilter.innerHTML = '<option value="">All Locations</option>';
-            uniqueLocations.forEach(location => {
-                const option = document.createElement('option');
-                option.value = location;
-                option.textContent = location;
-                locationFilter.appendChild(option);
-            });
-        }
-
-        function populatePatientFilters() {
-            const locationFilter = document.getElementById('patientLocationFilter');
-            const uniqueLocations = [...new Set(patientData.map(p => p.currentLocation))];
-            
-            locationFilter.innerHTML = '<option value="">All Locations</option>';
-            uniqueLocations.forEach(location => {
-                const option = document.createElement('option');
-                option.value = location;
-                option.textContent = location;
-                locationFilter.appendChild(option);
-            });
-        }
-
-        function populateTrackerFilters() {
-            const locationFilter = document.getElementById('trackerLocationFilter');
-            const uniqueLocations = [...new Set(delegationData.map(d => d.currentLocation))];
-            
-            locationFilter.innerHTML = '<option value="">All Locations</option>';
-            uniqueLocations.forEach(location => {
-                const option = document.createElement('option');
-                option.value = location;
-                option.textContent = location;
-                locationFilter.appendChild(option);
-            });
-        }
-
-        function filterEmployees() {
-            // Employee filtering logic would go here
-            console.log('Employee filter applied');
-        }
-
-        function filterPatients() {
-            // Patient filtering logic would go here
-            console.log('Patient filter applied');
-        }
-
-        function applyTrackerFilters() {
-            // Task tracker filtering logic would go here
-            console.log('Tracker filters applied');
-        }
-
-        // Report functions
-        function updateReportOptions() {
-            // Populate location dropdown
-            const locationSelect = document.getElementById('reportLocation');
-            locationSelect.innerHTML = '<option value="">All Locations</option>';
-            
-            const uniqueLocations = [...new Set(delegationData.map(d => d.currentLocation))];
-            uniqueLocations.forEach(location => {
-                const option = document.createElement('option');
-                option.value = location;
-                option.textContent = location;
-                locationSelect.appendChild(option);
-            });
-            
-            // Set default date range (last 30 days)
-            const endDate = new Date();
-            const startDate = new Date();
-            startDate.setDate(startDate.getDate() - 30);
-            
-            document.getElementById('reportEndDate').value = endDate.toISOString().split('T')[0];
-            document.getElementById('reportStartDate').value = startDate.toISOString().split('T')[0];
-        }
-
-        function generateReport() {
-            const reportType = document.getElementById('reportType').value;
-            const startDate = document.getElementById('reportStartDate').value;
-            const endDate = document.getElementById('reportEndDate').value;
-            const location = document.getElementById('reportLocation').value;
-            
-            let reportData;
-            
-            switch(reportType) {
-                case 'delegation-summary':
-                    reportData = ReportGenerator.generateDelegationSummary(startDate, endDate, location);
-                    break;
-                case 'compliance-report':
-                    reportData = ReportGenerator.generateComplianceReport(startDate, endDate, location);
-                    break;
-                default:
-                    alert('Report type not implemented yet.');
-                    return;
-            }
-            
-            ReportGenerator.renderReport(reportData, reportType);
-        }
-
-        function exportReport() {
-            // Simple CSV export
-            const reportType = document.getElementById('reportType').value;
-            let csvContent = '';
-            
-            if (reportType === 'delegation-summary') {
-                csvContent = 'Patient,Nurse,Task,Date,Status,Location\n';
-                delegationData.forEach(d => {
-                    csvContent += `"${d.patientName}","${d.assignedNurse}","${d.task}","${d.date}","${d.status}","${d.currentLocation}"\n`;
-                });
-            }
-            
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${reportType}-report-${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function exportToPDF() {
-            alert('PDF export functionality would require a PDF library like jsPDF. This feature would be available in the full SaaS version.');
-        }
-
-        // Button functions
-        function addNewDelegation() {
-            ModalManager.openDelegationModal();
-        }
-
-        function validateAllDelegations() {
-            let issues = 0;
-            delegationData.forEach(delegation => {
-                if (delegation.complianceStatus !== 'Compliant') {
-                    issues++;
-                }
-            });
-            
-            const alertContent = document.getElementById('alertContent');
-            if (issues === 0) {
-                alertContent.innerHTML = '✅ All delegations are compliant. No issues found.';
-            } else {
-                alertContent.innerHTML = `⚠️ Found ${issues} compliance issues. Check the Task Tracker for details.`;
-            }
-        }
-
-        function exportBackup() {
-            dataManager.exportData();
-        }
-
-        function addNewEmployee() {
-            alert('Add New Employee: This feature opens a form to add employee profile with certifications and location assignments. Available in the full SaaS version.');
-        }
-
-        function addNewPatient() {
-            alert('Add New Patient: This feature opens a form to add patient with location assignment. Available in the full SaaS version.');
-        }
-
-        function recordTransfer() {
-            alert('Record Transfer: This feature opens a form to record patient transfer between locations. Available in the full SaaS version.');
-        }
-
-        function showExpiringCerts() {
-            const expiringCount = employeeData.reduce((count, emp) => 
-                count + emp.certifications.filter(cert => cert.status === 'expiring' || cert.status === 'expired').length, 0);
-            alert(`Found ${expiringCount} certifications that are expired or expiring soon. Check the Compliance Monitor for details.`);
-        }
-
-        function editDelegation(id) {
-            ModalManager.openDelegationModal(id);
-        }
-
-        // Initialize enhanced features
-        const dataManager = new DataManager();
-        dataManager.enableAutoSave();
-        const globalSearch = new GlobalSearch();
-
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            renderDelegationEntry();
-            updateReportOptions();
         });
+        
+        dataManager.saveData();
+        renderPatientTracking();
+        closePatientModal();
+        dataManager.showSaveNotification();
+    }
+}
+
+function recordPatientTransfer() {
+    if (!currentEditingPatient) return;
+    openTransferHistoryModal(currentEditingPatient.id);
+}
+
+function showPatientValidationError(errors) {
+    const errorDiv = document.getElementById('patientValidationErrors');
+    errorDiv.innerHTML = `
+        <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 10px; border-radius: 4px; margin: 10px 0;">
+            <strong>Please fix the following issues:</strong><br>
+            ${errors.map(error => `• ${error}`).join('<br>')}
+        </div>
+    `;
+}
+
+function closePatientModal() {
+    document.getElementById('patientModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+    document.getElementById('patientValidationErrors').innerHTML = '';
+    currentEditingPatient = null;
+}
+
+// Enhanced Delegation Management
+function openEnhancedDelegationModal(delegationId = null) {
+    const modal = document.getElementById('enhancedDelegationModal');
+    const title = document.getElementById('enhancedModalTitle');
+    const deleteBtn = document.getElementById('deleteDelegationBtn');
+    const duplicateBtn = document.getElementById('duplicateBtn');
+    
+    populateEnhancedPatientDropdown();
+    populateEnhancedTaskDropdown();
+    populateEnhancedNurseDropdown();
+    
+    if (delegationId) {
+        // Edit mode
+        currentEditingDelegation = originalDelegationData.find(d => d.id === delegationId);
+        title.textContent = 'Edit Delegation';
+        deleteBtn.style.display = 'inline-block';
+        duplicateBtn.style.display = 'inline-block';
+        
+        if (currentEditingDelegation) {
+            document.getElementById('enhancedModalPatientId').value = currentEditingDelegation.patientId;
+            document.getElementById('enhancedModalTask').value = currentEditingDelegation.task;
+            document.getElementById('enhancedModalEmployeeId').value = currentEditingDelegation.employeeId;
+            document.getElementById('enhancedModalDate').value = currentEditingDelegation.date;
+            document.getElementById('enhancedModalShift').value = currentEditingDelegation.shift;
+            document.getElementById('enhancedModalDelegator').value = currentEditingDelegation.delegator;
+            document.getElementById('enhancedModalPriority').value = currentEditingDelegation.priority || 'Medium';
+            document.getElementById('enhancedModalStatus').value = currentEditingDelegation.status || 'Pending';
+            document.getElementById('delegationNotes').value = currentEditingDelegation.notes || '';
+            
+            updateEnhancedAvailableNurses();
+        }
+    } else {
+        // Create mode
+        currentEditingDelegation = null;
+        title.textContent = 'Create New Delegation';
+        deleteBtn.style.display = 'none';
+        duplicateBtn.style.display = 'none';
+        document.getElementById('enhancedDelegationForm').reset();
+        document.getElementById('enhancedModalDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('enhancedModalPriority').value = 'Medium';
+        document.getElementById('enhancedModalStatus').value = 'Pending';
+    }
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function populateEnhancedPatientDropdown() {
+    const select = document.getElementById('enhancedModalPatientId');
+    select.innerHTML = '<option value="">Select Patient</option>';
+    
+    originalPatientData.filter(p => p.status === 'Current Resident').forEach(patient => {
+        const option = document.createElement('option');
+        option.value = patient.id;
+        option.textContent = `${patient.name} - ${patient.currentLocation} - ${patient.room}`;
+        select.appendChild(option);
+    });
+}
+
+function populateEnhancedTaskDropdown() {
+    const select = document.getElementById('enhancedModalTask');
+    select.innerHTML = '<option value="">Select Task</option>';
+    
+    config.tasks.forEach(task => {
+        const option = document.createElement('option');
+        option.value = task.name;
+        option.textContent = `${task.name} (Requires: ${task.requiresCert})`;
+        select.appendChild(option);
+    });
+}
+
+function populateEnhancedNurseDropdown(taskName = null) {
+    const select = document.getElementById('enhancedModalEmployeeId');
+    select.innerHTML = '<option value="">Select Nurse</option>';
+    
+    let availableEmployees = originalEmployeeData.filter(e => e.status === 'Active');
+    
+    if (taskName) {
+        const task = config.tasks.find(t => t.name === taskName);
+        if (task) {
+            availableEmployees = availableEmployees.filter(employee => 
+                employee.certifications && employee.certifications.some(cert => 
+                    cert.name === task.requiresCert && cert.status === 'valid'
+                ) && employee.authorizedTasks && employee.authorizedTasks.includes(taskName)
+            );
+        }
+    }
+    
+    availableEmployees.forEach(employee => {
+        const option = document.createElement('option');
+        option.value = employee.id;
+        
+        const isQualified = taskName ? 
+            employee.certifications && employee.certifications.some(cert => 
+                cert.name === config.tasks.find(t => t.name === taskName)?.requiresCert && 
+                cert.status === 'valid'
+            ) && employee.authorizedTasks && employee.authorizedTasks.includes(taskName) : true;
+        
+        const qualStatus = isQualified ? '✅' : '❌';
+        option.textContent = `${qualStatus} ${employee.name} - ${employee.primaryLocation}`;
+        select.appendChild(option);
+    });
+}
+
+function updateEnhancedAvailableNurses() {
+    const taskName = document.getElementById('enhancedModalTask').value;
+    populateEnhancedNurseDropdown(taskName);
+}
+
+function showStatusReasonField() {
+    const status = document.getElementById('enhancedModalStatus').value;
+    const reasonGroup = document.getElementById('statusReasonGroup');
+    
+    if (status === 'Completed' || status === 'Cancelled' || status === 'Reassigned') {
+        reasonGroup.style.display = 'block';
+    } else {
+        reasonGroup.style.display = 'none';
+    }
+}
+
+function saveEnhancedDelegation() {
+    const formData = {
+        patientId: document.getElementById('enhancedModalPatientId').value,
+        task: document.getElementById('enhancedModalTask').value,
+        employeeId: document.getElementById('enhancedModalEmployeeId').value,
+        date: document.getElementById('enhancedModalDate').value,
+        shift: document.getElementById('enhancedModalShift').value,
+        delegator: document.getElementById('enhancedModalDelegator').value,
+        priority: document.getElementById('enhancedModalPriority').value,
+        status: document.getElementById('enhancedModalStatus').value,
+        notes: document.getElementById('delegationNotes').value,
+        statusReason: document.getElementById('statusReason').value
+    };
+    
+    // Validate using existing validator
+    const validation = FormValidator.validateDelegation(formData);
+    if (!validation.isValid) {
+        showEnhancedValidationError(validation.errors);
+        return;
+    }
+    
+    const patient = originalPatientData.find(p => p.id === formData.patientId);
+    const employee = originalEmployeeData.find(e => e.id === formData.employeeId);
+    
+    if (!patient || !employee) {
+        showEnhancedValidationError(['Selected patient or employee not found']);
+        return;
+    }
+    
+    const delegationData = {
+        id: currentEditingDelegation ? currentEditingDelegation.id : 'DEL' + String(originalDelegationData.length + 1).padStart(3, '0'),
+        patientId: formData.patientId,
+        patientName: patient.name,
+        currentLocation: patient.currentLocation,
+        task: formData.task,
+        assignedNurse: employee.name,
+        employeeId: formData.employeeId,
+        qualificationCheck: 'Valid',
+        date: formData.date,
+        shift: formData.shift,
+        delegator: formData.delegator,
+        priority: formData.priority,
+        status: formData.status,
+        notes: formData.notes,
+        statusReason: formData.statusReason,
+        locationMatch: employee.availableLocations && employee.availableLocations.includes(patient.currentLocation) ? 'Valid' : 'Mismatch',
+        complianceStatus: 'Compliant',
+        lastUpdated: new Date().toISOString()
+    };
+    
+    if (currentEditingDelegation) {
+        // Update existing delegation
+        const index = originalDelegationData.findIndex(d => d.id === currentEditingDelegation.id);
+        if (index >= 0) {
+            originalDelegationData[index] = delegationData;
+            
+            // Update filtered data if it contains this delegation
+            const filteredIndex = window.delegationData.findIndex(d => d.id === currentEditingDelegation.id);
+            if (filteredIndex >= 0) {
+                window.delegationData[filteredIndex] = delegationData;
+            }
+        }
+    } else {
+        // Add new delegation
+        originalDelegationData.push(delegationData);
+        window.delegationData.push(delegationData);
+    }
+    
+    dataManager.saveData();
+    renderDelegationEntry();
+    closeEnhancedModal();
+    dataManager.showSaveNotification();
+}
+
+function duplicateDelegation() {
+    if (!currentEditingDelegation) return;
+    
+    // Close current modal and open new one with pre-filled data
+    closeEnhancedModal();
+    
+    setTimeout(() => {
+        openEnhancedDelegationModal();
+        
+        // Fill in data from current delegation
+        document.getElementById('enhancedModalPatientId').value = currentEditingDelegation.patientId;
+        document.getElementById('enhancedModalTask').value = currentEditingDelegation.task;
+        document.getElementById('enhancedModalEmployeeId').value = currentEditingDelegation.employeeId;
+        document.getElementById('enhancedModalDate').value = new Date().toISOString().split('T')[0]; // Today's date
+        document.getElementById('enhancedModalShift').value = currentEditingDelegation.shift;
+        document.getElementById('enhancedModalDelegator').value = currentEditingDelegation.delegator;
+        document.getElementById('enhancedModalPriority').value = currentEditingDelegation.priority;
+        document.getElementById('enhancedModalStatus').value = 'Pending'; // Reset status
+        document.getElementById('delegationNotes').value = 'Duplicated from ' + currentEditingDelegation.id;
+        
+        updateEnhancedAvailableNurses();
+    }, 100);
+}
+
+function deleteDelegation() {
+    if (!currentEditingDelegation) return;
+    
+    if (confirm(`Are you sure you want to delete delegation ${currentEditingDelegation.id}?`)) {
+        // Remove from original data
+        const index = originalDelegationData.findIndex(d => d.id === currentEditingDelegation.id);
+        if (index >= 0) {
+            originalDelegationData.splice(index, 1);
+        }
+        
+        // Remove from filtered data
+        const filteredIndex = window.delegationData.findIndex(d => d.id === currentEditingDelegation.id);
+        if (filteredIndex >= 0) {
+            window.delegationData.splice(filteredIndex, 1);
+        }
+        
+        dataManager.saveData();
+        renderDelegationEntry();
+        closeEnhancedModal();
+        dataManager.showSaveNotification();
+    }
+}
+
+function showEnhancedValidationError(errors) {
+    const errorDiv = document.getElementById('enhancedModalValidationErrors');
+    errorDiv.innerHTML = `
+        <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 10px; border-radius: 4px; margin: 10px 0;">
+            <strong>Please fix the following issues:</strong><br>
+            ${errors.map(error => `• ${error}`).join('<br>')}
+        </div>
+    `;
+}
+
+function closeEnhancedModal() {
+    document.getElementById('enhancedDelegationModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+    document.getElementById('enhancedModalValidationErrors').innerHTML = '';
+    currentEditingDelegation = null;
+}
+
+// Transfer History Management
+function openTransferHistoryModal(patientId) {
+    const modal = document.getElementById('transferHistoryModal');
+    const patient = originalPatientData.find(p => p.id === patientId);
+    
+    if (!patient) return;
+    
+    document.getElementById('transferHistoryTitle').textContent = `Transfer History - ${patient.name}`;
+    document.getElementById('transferFromLocation').value = patient.currentLocation;
+    document.getElementById('transferDate').value = new Date().toISOString().split('T')[0];
+    
+    // Populate transfer destinations
+    populateTransferDestinations(patient.currentLocation);
+    
+    // Display transfer history
+    displayTransferHistory(patient.transferHistory || []);
+    
+    currentEditingPatient = patient;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function populateTransferDestinations(currentLocation) {
+    const select = document.getElementById('transferToLocation');
+    select.innerHTML = '<option value="">Select Destination</option>';
+    
+    config.locations.forEach(location => {
+        if (location !== currentLocation) {
+            const option = document.createElement('option');
+            option.value = location;
+            option.textContent = location;
+            select.appendChild(option);
+        }
+    });
+}
+
+function displayTransferHistory(transferHistory) {
+    const container = document.getElementById('transferHistoryContent');
+    
+    if (transferHistory.length === 0) {
+        container.innerHTML = '<p style="color: #666; font-style: italic;">No transfer history available.</p>';
+        return;
+    }
+    
+    container.innerHTML = transferHistory.map(transfer => `
+        <div class="transfer-history-item">
+            <strong>${transfer.date}</strong>: ${transfer.from} → ${transfer.to}
+            <br><small style="color: #666;">Reason: ${transfer.reason}</small>
+            ${transfer.notes ? `<br><small style="color: #666;">Notes: ${transfer.notes}</small>` : ''}
+        </div>
+    `).join('');
+}
+
+function saveTransfer() {
+    const transferData = {
+        from: document.getElementById('transferFromLocation').value,
+        to: document.getElementById('transferToLocation').value,
+        date: document.getElementById('transferDate').value,
+        reason: document.getElementById('transferReason').value,
+        notes: document.getElementById('transferNotes').value
+    };
+    
+    if (!transferData.to || !transferData.date || !transferData.reason) {
+        alert('Please fill in all required fields');
+        return;
+    }
+    
+    if (!currentEditingPatient) return;
+    
+    // Update patient data
+    const patientIndex = originalPatientData.findIndex(p => p.id === currentEditingPatient.id);
+    if (patientIndex >= 0) {
+        originalPatientData[patientIndex].currentLocation = transferData.to;
+        originalPatientData[patientIndex].lastTransfer = transferData.date;
+        
+        if (!originalPatientData[patientIndex].transferHistory) {
+            originalPatientData[patientIndex].transferHistory = [];
+        }
+        originalPatientData[patientIndex].transferHistory.push(transferData);
+        
+        // Update filtered data
+        const filteredIndex = window.patientData.findIndex(p => p.id === currentEditingPatient.id);
+        if (filteredIndex >= 0) {
+            window.patientData[filteredIndex] = {...originalPatientData[patientIndex]};
+        }
+    }
+    
+    // Update related delegations
+    originalDelegationData.forEach(delegation => {
+        if (delegation.patientId === currentEditingPatient.id) {
+            delegation.currentLocation = transferData.to;
+            // Check if assigned nurse is still authorized for new location
+            const employee = originalEmployeeData.find(e => e.id === delegation.employeeId);
+            if (employee && employee.availableLocations) {
+                delegation.locationMatch = employee.availableLocations.includes(transferData.to) ? 'Valid' : 'Mismatch';
+                delegation.complianceStatus = delegation.locationMatch === 'Valid' ? 'Compliant' : 'Non-Compliant';
+            }
+        }
+    });
+    
+    dataManager.saveData();
+    renderPatientTracking();
+    closeTransferModal();
+    dataManager.showSaveNotification();
+}
+
+function closeTransferModal() {
+    document.getElementById('transferHistoryModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+    currentEditingPatient = null;
+}
+
+// Update existing functions to use enhanced modals
+function addNewEmployee() {
+    openEmployeeModal();
+}
+
+function addNewPatient() {
+    openPatientModal();
+}
+
+function addNewDelegation() {
+    openEnhancedDelegationModal();
+}
+
+function editDelegation(id) {
+    openEnhancedDelegationModal(id);
+}
+
+function recordTransfer() {
+    if (window.patientData.length === 0) {
+        alert('No patients available for transfer');
+        return;
+    }
+    
+    // Show list of patients to select for transfer
+    const patientId = prompt('Enter Patient ID to record transfer:');
+    if (patientId) {
+        const patient = originalPatientData.find(p => p.id === patientId);
+        if (patient) {
+            openTransferHistoryModal(patientId);
+        } else {
+            alert('Patient not found');
+        }
+    }
+}
+
+// Enhanced render functions with action buttons
+function renderEmployeeProfiles() {
+    const tbody = document.getElementById('employeeTableBody');
+    tbody.innerHTML = '';
+    
+    window.employeeData.forEach(employee => {
+        const tr = document.createElement('tr');
+        
+        const certificationBadges = employee.certifications.map(cert => 
+            `<span class="badge badge-${cert.status === 'valid' ? 'success' : cert.status === 'expiring' ? 'warning' : 'danger'}">${cert.name} (${cert.expiry})</span>`
+        ).join(' ');
+        
+        const locationBadges = employee.availableLocations.map(loc => 
+            `<span class="badge badge-info">${loc}</span>`
+        ).join(' ');
+        
+        tr.innerHTML = `
+            <td>${employee.id}</td>
+            <td><strong>${employee.name}</strong></td>
+            <td>${employee.primaryLocation}</td>
+            <td>${locationBadges}</td>
+            <td>${employee.authorizedTasks.join(', ')}</td>
+            <td>${certificationBadges}</td>
+            <td><span class="badge badge-${employee.status === 'Active' ? 'success' : 'warning'}">${employee.status}</span></td>
+            <td>${employee.lastUpdated}</td>
+            <td class="action-buttons">
+                <button class="action-btn edit-btn" onclick="openEmployeeModal('${employee.id}')" title="Edit Employee">✏️</button>
+            </td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+}
+
+function renderPatientTracking() {
+    const tbody = document.getElementById('patientTableBody');
+    tbody.innerHTML = '';
+    
+    window.patientData.forEach(patient => {
+        const tr = document.createElement('tr');
+        
+        tr.innerHTML = `
+            <td>${patient.id}</td>
+            <td><strong>${patient.name}</strong></td>
+            <td>${patient.currentLocation}</td>
+            <td>${patient.room}</td>
+            <td>${patient.admissionDate}</td>
+            <td>${patient.lastTransfer || 'N/A'}</td>
+            <td><span class="badge badge-info">${patient.careLevel}</span></td>
+            <td>${patient.activeTasks}</td>
+            <td><span class="badge badge-${patient.status === 'Current Resident' ? 'success' : 'warning'}">${patient.status}</span></td>
+            <td class="action-buttons">
+                <button class="action-btn edit-btn" onclick="openPatientModal('${patient.id}')" title="Edit Patient">✏️</button>
+                <button class="action-btn status-btn" onclick="openTransferHistoryModal('${patient.id}')" title="Transfer History">📍</button>
+            </td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+}
+
+function renderDelegationEntry() {
+    const tbody = document.getElementById('delegationTableBody');
+    tbody.innerHTML = '';
+    
+    window.delegationData.forEach(delegation => {
+        const tr = document.createElement('tr');
+        tr.className = getStatusClass(delegation.status);
+        
+        tr.innerHTML = `
+            <td><span class="badge badge-${delegation.status.toLowerCase().replace(' ', '-')}">${delegation.status}</span></td>
+            <td>${delegation.patientName} (${delegation.patientId})</td>
+            <td>${delegation.currentLocation}</td>
+            <td>${delegation.task}</td>
+            <td>${delegation.assignedNurse}</td>
+            <td><span class="badge badge-${delegation.qualificationCheck === 'Valid' ? 'success' : delegation.qualificationCheck === 'Expiring Soon' ? 'warning' : 'danger'}">${delegation.qualificationCheck}</span></td>
+            <td>${delegation.date}</td>
+            <td>${delegation.shift}</td>
+            <td>${delegation.priority}</td>
+            <td><span class="badge badge-${delegation.complianceStatus === 'Compliant' ? 'success' : delegation.complianceStatus === 'At Risk' ? 'warning' : 'danger'}">${delegation.complianceStatus}</span></td>
+            <td class="action-buttons">
+                <button class="action-btn edit-btn" onclick="editDelegation('${delegation.id}')" title="Edit Delegation">✏️</button>
+                <button class="action-btn status-btn" onclick="quickStatusUpdate('${delegation.id}')" title="Quick Status Update">⚡</button>
+            </td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+}
+
+// Quick status update function
+function quickStatusUpdate(delegationId) {
+    const delegation = originalDelegationData.find(d => d.id === delegationId);
+    if (!delegation) return;
+    
+    const newStatus = prompt(`Current status: ${delegation.status}\n\nEnter new status:\n- Pending\n- In Progress\n- Completed\n- Overdue\n- Reassigned\n- Cancelled`, delegation.status);
+    
+    if (newStatus && ['Pending', 'In Progress', 'Completed', 'Overdue', 'Reassigned', 'Cancelled'].includes(newStatus)) {
+        const index = originalDelegationData.findIndex(d => d.id === delegationId);
+        if (index >= 0) {
+            originalDelegationData[index].status = newStatus;
+            originalDelegationData[index].lastUpdated = new Date().toISOString();
+            
+            // Update filtered data
+            const filteredIndex = window.delegationData.findIndex(d => d.id === delegationId);
+            if (filteredIndex >= 0) {
+                window.delegationData[filteredIndex].status = newStatus;
+                window.delegationData[filteredIndex].lastUpdated = new Date().toISOString();
+            }
+        }
+        
+        dataManager.saveData();
+        renderDelegationEntry();
+        dataManager.showSaveNotification();
+    }
+}
     </script>
 </body>
 </html>
